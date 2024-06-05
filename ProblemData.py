@@ -59,6 +59,10 @@ class Pilot:
     def __repr__(self):
         return f"{self.name}"
 
+    def assign_pairing(self, pairing):
+        self.original_pairing = pairing
+        pairing.original_pilot = self
+
 
 class Flight:
     def __init__(self, name, duration):
@@ -66,12 +70,12 @@ class Flight:
         self.duration = duration
 
     def __repr__(self):
-        return f"{self.name}"
+        return f"F({self.name})"
 
 
 class Pairing:
     def __init__(self, name, flights):
-        self.name = f'F({name})'
+        self.name = name
         self._flights = flights
         self.original_pilot = None
 
@@ -80,7 +84,7 @@ class Pairing:
         self.end = self.start + duration
 
     def __repr__(self):
-        return self.name
+        return f'P({self.name})'
 
     @property
     def flights(self):
@@ -102,6 +106,7 @@ class ProblemData:
     flights = []
     pairings = []
     pif_table = DataDictionary()
+    sic_table = DataDictionary()
 
     demands = DataDictionary()
 
@@ -123,7 +128,7 @@ class ProblemData:
         ]
 
         # # permutations of flights
-        # ProblemData.pairings = list(
+        # pairings = list(
         #     chain(*map(lambda x: permutations(ProblemData.flights, x), range(2, len(ProblemData.flights) + 1))))
 
         # combinations of flights: use this for smaller cases
@@ -136,11 +141,32 @@ class ProblemData:
 
         for pairing in ProblemData.pairings:
             for flight in ProblemData.flights:
-                ProblemData.pif_table.data[pairing][flight] = 1
+                if flight in pairing.flights:
+                    ProblemData.pif_table.data[pairing][flight] = 1
+                else:
+                    ProblemData.pif_table.data[pairing][flight] = 0
+
+        ProblemData.crew[0].assign_pairing(ProblemData.pairings[22])
+        ProblemData.crew[1].assign_pairing(ProblemData.pairings[11])
+        ProblemData.crew[2].assign_pairing(ProblemData.pairings[20])
+        ProblemData.crew[3].assign_pairing(ProblemData.pairings[9])
+        ProblemData.crew[4].assign_pairing(ProblemData.pairings[17])
+        ProblemData.crew[5].assign_pairing(ProblemData.pairings[15])
+        ProblemData.crew[6].assign_pairing(ProblemData.pairings[0])
+        ProblemData.crew[7].assign_pairing(ProblemData.pairings[13])
+        ProblemData.crew[8].assign_pairing(ProblemData.pairings[3])
+        ProblemData.crew[9].assign_pairing(ProblemData.pairings[25])
+
+        for pairing in ProblemData.pairings:
+            for pilot in ProblemData.crew:
+                if pairing.original_pilot == pilot:
+                    ProblemData.sic_table.data[pairing][pilot] = 1
+                else:
+                    ProblemData.sic_table.data[pairing][pilot] = 0
 
         # Save all our data in the dictionary below. Since ProblemData is static,
         # these values can be accessed by the class itself.
         problem_data = {'pilots': ProblemData.crew, 'flights': ProblemData.flights, 'pairings': ProblemData.pairings,
-                        'pif_table': ProblemData.pif_table}
+                        'pif_table': ProblemData.pif_table, 'sic_table': ProblemData.sic_table, }
 
         return problem_data
