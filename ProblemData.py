@@ -4,6 +4,7 @@
 This file is used to define all the domain classes for basic and complex entities that will be used in the optimization.
 The entities are defined as classes and the data is stored in dictionaries for O(1) time access and manipulation.
 """
+from datetime import datetime, timedelta
 from itertools import chain, combinations, permutations
 from collections import defaultdict
 from typing import Any, Set, Self
@@ -57,7 +58,7 @@ class Pilot:
         self.original_pairing = None
 
     def __repr__(self):
-        return f"{self.name}"
+        return f"Pilot({self.name})"
 
     def assign_pairing(self, pairing):
         self.original_pairing = pairing
@@ -69,12 +70,31 @@ class Flight:
         self.name = name
         self.duration = duration
 
+        self._start = ProblemData.INITIAL_DATE
+        self._end = self.start + timedelta(hours=self.duration)
+
     def __repr__(self):
-        return f"F({self.name})"
+        return f"Flight({self.name})"
+
+    @property
+    def start(self):
+        return self._start
+
+    @start.setter
+    def start(self, value):
+        self._start = value
+
+    @property
+    def end(self):
+        return self._start + timedelta(hours=self.duration)
+
+    @end.setter
+    def end(self, value):
+        self._end = value
 
 
 class Pairing:
-    def __init__(self, name, flights):
+    def __init__(self, name, flights=None):
         self.name = name
         self._flights = flights
         self.original_pilot = None
@@ -84,7 +104,7 @@ class Pairing:
         self.end = self.start + duration
 
     def __repr__(self):
-        return f'P({self.name})'
+        return f'Pairing({self.name})'
 
     @property
     def flights(self):
@@ -102,6 +122,8 @@ class ProblemData:
     UNASSIGNING_PAIRING = 4
     PILOT_SCHEDULE_CHANGED = 4
 
+    INITIAL_DATE = datetime(2024, 1, 1)
+
     crew = []
     flights = []
     pairings = []
@@ -117,14 +139,18 @@ class ProblemData:
         '''Basic Entities'''
         ProblemData.crew = [
             Pilot('John'), Pilot('Albert'), Pilot('Mary'), Pilot('Kate'),
-            Pilot('Alice'), Pilot('Bob'), Pilot('David'),
-            Pilot('Eve'), Pilot('Frank'), Pilot('George'),
+            Pilot('Alice'), Pilot('Bob'),
+            # Pilot('David'),
+            # Pilot('Eve'), Pilot('Frank'), Pilot('George'),
         ]
+        ProblemData.crew.sort(key=lambda x: x.name)
 
         ProblemData.flights = [
-            Flight('AZU123', 4), Flight('TAM234', 3),
-            Flight('GLO345', 2), Flight('DAE456', 5.5),
-            Flight('QFA567', 1),
+            Flight('AZU123', 4), Flight('TAM123', 3), Flight('GLO123', 2),
+            Flight('DAE123', 2.5), Flight('QFA123', 1),
+            # Flight('AZU234', .5),
+            # Flight('TAM234', 4), Flight('GLO234', 3.5),
+            # Flight('DAE234', 5.5), Flight('QFA234', 6),
         ]
 
         # # permutations of flights
@@ -152,10 +178,10 @@ class ProblemData:
         ProblemData.crew[3].assign_pairing(ProblemData.pairings[9])
         ProblemData.crew[4].assign_pairing(ProblemData.pairings[17])
         ProblemData.crew[5].assign_pairing(ProblemData.pairings[15])
-        ProblemData.crew[6].assign_pairing(ProblemData.pairings[0])
-        ProblemData.crew[7].assign_pairing(ProblemData.pairings[13])
-        ProblemData.crew[8].assign_pairing(ProblemData.pairings[3])
-        ProblemData.crew[9].assign_pairing(ProblemData.pairings[25])
+        # ProblemData.crew[6].assign_pairing(ProblemData.pairings[0])
+        # ProblemData.crew[7].assign_pairing(ProblemData.pairings[13])
+        # ProblemData.crew[8].assign_pairing(ProblemData.pairings[3])
+        # ProblemData.crew[9].assign_pairing(ProblemData.pairings[25])
 
         for pairing in ProblemData.pairings:
             for pilot in ProblemData.crew:

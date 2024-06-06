@@ -33,7 +33,52 @@ class Variable(ABC):
         return self.__repr__()
 
 
-class PilotFlightAssignment(Variable):
+class StartTimeVar(Variable):
+    """ """
+
+    def __init__(self, model, pilot, flight, objective=0):
+        super().__init__(objective=objective)
+        self.pilot = pilot
+        self.flight = flight
+        self.duration = self.flight.duration
+
+        self.variable = self._add_variable(model=model)
+
+    def _add_variable(self, model: Model):
+        """This is the function that will invoke the Gurobi function to add the variable to the model.
+
+        :param model: Model: Gurobi model.
+
+        """
+        return model.addVar(name=self.name, vtype=GRB.CONTINUOUS, obj=self.objective)
+
+    def __repr__(self):
+        return f'StartTimeVar{self.pilot}_{self.flight}'
+
+
+class PrecedenceVar(Variable):
+
+    def __init__(self, model, pilot, flight1, flight2, objective=0):
+        super().__init__(objective=objective)
+        self.pilot = pilot
+        self.flight1 = flight1
+        self.flight2 = flight2
+
+        self.variable = self._add_variable(model=model)
+
+    def _add_variable(self, model: Model):
+        """This is the function that will invoke the Gurobi function to add the variable to the model.
+
+        :param model: Model: Gurobi model.
+
+        """
+        return model.addVar(name=self.name, vtype=GRB.BINARY, ub=1.0)
+
+    def __repr__(self):
+        return f'PrecedenceVar_({self.pilot})_({self.flight1})_({self.flight2})'
+
+
+class FlightPilotAssignmentVar(Variable):
     """ """
 
     def __init__(self, model, pilot, flight, objective=0):
@@ -52,10 +97,10 @@ class PilotFlightAssignment(Variable):
         return model.addVar(name=self.name, vtype=GRB.BINARY, obj=self.objective)
 
     def __repr__(self):
-        return f'PilotFlightAssignment_{self.pilot}_{self.flight}'
+        return f'FlightPilotAssignment_{self.pilot}_{self.flight}'
 
 
-class PilotPairingAssignment(Variable):
+class PilotPairingAssignmentVar(Variable):
     """ """
 
     def __init__(self, model, pilot, pairing, objective):

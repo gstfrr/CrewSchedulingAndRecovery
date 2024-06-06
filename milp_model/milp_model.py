@@ -8,14 +8,22 @@ used to compose the Schedule solution (Dispatch Decision).
 from timeit import default_timer as timer
 from gurobipy import Model, GRB
 
-from milp_model.variables.variables_factory import create_pilot_flight_assignment_var
+from ProblemData import ProblemData
+from milp_model.variables.variables_factory import create_flight_pilot_assignment_var
 from milp_model.variables.variables_factory import create_pilot_pairing_assignment_var
+from milp_model.variables.variables_factory import create_start_time_var
+from milp_model.variables.variables_factory import create_precedence_var
 
-from milp_model.constraints.constraints_factory import create_pilot_flight_assignment_constraint
-from milp_model.constraints.constraints_factory import create_pilot_pairing_assignment_constraint
+from milp_model.constraints.constraints_factory import create_flight_pilot_assignment_constraint
+# from milp_model.constraints.constraints_factory import create_pilot_pairing_assignment_constraint
 from milp_model.constraints.constraints_factory import create_idle_pilots_constraint
+from milp_model.constraints.constraints_factory import create_precedence_constraint
+from milp_model.constraints.constraints_factory import create_precedence_integrity_constraint
 
 from milp_model.solution import clean_model
+from milp_model.solution import write_solution
+
+from milp_model.visualizer import visualize
 
 
 def set_parameters(model: Model) -> None:
@@ -62,19 +70,24 @@ def get_optimization(problem_data):
 
     """variables Section"""
     start = timer()
-    pilot_flight_assignment_vars = create_pilot_flight_assignment_var(model=model, pilots=pilots, flights=flights)
-    pilot_pairing_assignment_vars = create_pilot_pairing_assignment_var(model=model, pilots=pilots, pairings=pairings,
-                                                                        sic_table=sic_table)
+    flight_pilot_assignment_vars = create_flight_pilot_assignment_var(model=model, flights=flights, pilots=pilots)
+    # pilot_pairing_assignment_vars = create_pilot_pairing_assignment_var(model=model, pilots=pilots, pairings=pairings,
+    #                                                                     sic_table=sic_table)
+
+    start_time_vars = create_start_time_var(model, flights=flights, pilots=pilots)
+    precedence_vars = create_precedence_var(model, flights=flights, pilots=pilots)
     end = timer()
     print(f'\tvariables creation time: {end - start} seconds')
 
     """Constraints Section"""
     start = timer()
-    create_idle_pilots_constraint(model=model, pilots=pilots, pilot_flight_assignment_vars=pilot_flight_assignment_vars)
-    create_pilot_pairing_assignment_constraint(model=model, pilots=pilots, pairings=pairings,
-                                               pilot_pairing_assignment_vars=pilot_pairing_assignment_vars)
-    create_pilot_flight_assignment_constraint(model=model, pilots=pilots, flights=flights,
-                                              pilot_flight_assignment_vars=pilot_flight_assignment_vars)
+    # create_idle_pilots_constraint(model=model, pilots=pilots, flight_pilot_assignment_vars=flight_pilot_assignment_vars)
+    create_flight_pilot_assignment_constraint(model=model, flights=flights, pilots=pilots, flight_pilot_assignment_vars=flight_pilot_assignment_vars)
+    # create_pilot_pairing_assignment_constraint(model=model, pilots=pilots, pairings=pairings, pilot_pairing_assignment_vars=pilot_pairing_assignment_vars)
+
+    create_precedence_integrity_constraint(model, pilots=pilots, flights=flights, precedence_vars=precedence_vars)
+    create_precedence_constraint(model, start_time_vars=start_time_vars, precedence_vars=precedence_vars, pilots=pilots, flights=flights)
+
     end = timer()
     print(f'\tConstraints creation time: {end - start} seconds')
 
@@ -93,7 +106,16 @@ def get_optimization(problem_data):
         model.write('output/model.sol')
         model.write('output/model.mps')
 
-        '''Write Result'''
-        for var in pilot_flight_assignment_vars.values():
-            if var.variable.X == 1:
-                print(f'\t{var.pilot} -> {var.flight}')
+        for pilot in pilots:
+            print(f'{pilot}:')
+            last_end = ProblemData.INITIAL_DATE
+            for flight in flights:
+                var = flight_pilot_assignment_vars.data[pilot][flight]
+                var.flight.start = last_end
+                last_end = var.flight.end
+                if var.variable.X > 0:
+                    print(f'\t{var.flight} - {var.flight.start} - {var.flight.end}')
+            print()
+
+        write_solution(flight_pilot_assignment_vars, 'output/solution.xlsx')
+        visualize('output/solution.xlsx')

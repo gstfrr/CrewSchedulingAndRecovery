@@ -6,6 +6,8 @@ functions to calculate statistics and write files.
 """
 
 from gurobipy import Model, GRB, Var, LinExpr
+import pandas as pd
+from openpyxl import load_workbook
 
 
 def clean_model(m: Model) -> None:
@@ -72,3 +74,43 @@ def get_var_details(var: Var) -> list[object]:
 def get_var_columns() -> list[str]:
     """ """
     return ['Value', 'ObjCoef', 'VarName', 'LB', 'UB']
+
+
+def write_solution(flight_pilot_assignment_vars, filename):
+    rows = []
+    for value in flight_pilot_assignment_vars.values():
+        var = value.variable
+        if var.X == 0:
+            continue
+        rows.append(
+            [value.flight.name, value.pilot.name, value.flight.duration, value.flight.start, value.flight.end] +
+            get_var_details(var))
+
+    df = pd.DataFrame(rows, columns=['Flight', 'Pilot', 'Duration', 'Start', 'End'] + get_var_columns())
+
+    with pd.ExcelWriter(filename) as writer:
+        df.to_excel(writer, sheet_name="Flights", index=False)
+
+    df.to_csv('output/solution.csv', index=False)
+
+    wb = load_workbook(filename)
+
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        ws.auto_filter.ref = ws.dimensions
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter  # Get the column name
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column].width = adjusted_width
+
+    # Save the workbook
+    wb.save(filename)
+
+    return df
