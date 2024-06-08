@@ -9,7 +9,6 @@ from collections import defaultdict
 from typing import Any, Set, Self
 
 
-
 def get_leaves(struct) -> Set[Any]:
     """This is an useful function to flatten dictionaries into a list. It is used to iterate over the values of the
      dictionary without using nested loops in the keys.
@@ -64,46 +63,48 @@ class Pilot:
 
 
 class Flight:
-    def __init__(self, name, duration):
+    def __init__(self, name, origin, destination, start, end):
         self.name = name
-        self.duration = duration
 
-        self._start = None
-        self._end = None
+        self.origin = origin
+        self.destination = destination
+
+        self.start = datetime.strptime(start, "%H:%M")
+        self.end = datetime.strptime(end, "%H:%M")
 
     def __repr__(self):
         return f"Flight({self.name})"
 
-    @property
-    def start(self):
-        return self._start
-
-    @start.setter
-    def start(self, value):
-        self._start = value
-
-    @property
-    def end(self):
-        return self._start + timedelta(hours=self.duration)
-
 
 class Pairing:
-    def __init__(self, name, flights=None):
-        self.name = name
-        self._flights = flights
+    def __init__(self):
+        self._name = None
+        self.flights = []
+        self.total_duty_time = timedelta()
         self.original_pilot = None
 
-        duration = sum(x.duration for x in self.flights)
-        self.start = 0
-        self.end = self.start + duration
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
+
+    def add_flight(self, flight):
+        if not self.flights:
+            self.flights.append(flight)
+            self.total_duty_time = flight.end - flight.start
+        else:
+            last_flight = self.flights[-1]
+            layover = flight.start - last_flight.end
+            self.total_duty_time += layover + (flight.end - flight.start)
+            self.flights.append(flight)
+
+    def is_legal(self, max_duty_time):
+        return self.total_duty_time <= max_duty_time
 
     def __repr__(self):
-        return f'Pairing({self.name})'
-
-    @property
-    def flights(self):
-        return self._flights
-
-    @flights.setter
-    def flights(self, value):
-        self._flights = value
+        pilot_name = self.original_pilot.name if self.original_pilot else '----'
+        return (f'Pairing({self.name}) - {pilot_name} - {len(self.flights)} ' +
+                ''.join(f'{f.origin}->' for f in self.flights) + f' - {self.total_duty_time}')
