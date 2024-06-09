@@ -61,6 +61,10 @@ class Pilot:
         self.original_pairing = pairing
         pairing.original_pilot = self
         for f in pairing.flights:
+            if f.pilot is not None:
+                print(f'\n\n\n\nFLIGHT {f.name}/{pairing.name} ALREADY ASSIGNED TO {f.pilot.name}.'
+                      + f'CANNOT ASSIGN TO {self.name}!!!\n\n\n\n')
+                continue
             f.pilot = self
 
 

@@ -26,7 +26,6 @@ def create_flights(input_flights: list[dict]) -> None:
     ProblemData.flights.sort(key=lambda x: x.origin)
     for i, f in enumerate(ProblemData.flights):
         f.name = i
-        print(f'{f.origin}\t{f.destination}\t{f.start}\t{f.end}\t')
 
 
 def create_pif_table() -> None:
@@ -84,8 +83,8 @@ class ProblemData:
         ProblemData.pairings = generate_pairings(ProblemData.flights)
 
         '''Assigning Pilots to Pairings/Flights'''
-        ProblemData.crew[0].assign_pairing(ProblemData.pairings[16])
-        ProblemData.crew[1].assign_pairing(ProblemData.pairings[5])  # 23
+        ProblemData.crew[0].assign_pairing(ProblemData.pairings[38])
+        ProblemData.crew[1].assign_pairing(ProblemData.pairings[4])  # 23
         ProblemData.crew[2].assign_pairing(ProblemData.pairings[17])
         # ProblemData.crew[3].assign_pairing(ProblemData.pairings[9])
         # ProblemData.crew[4].assign_pairing(ProblemData.pairings[24])
@@ -108,7 +107,7 @@ class ProblemData:
 
         print('\n', '-' * 10, 'FLIGHTS', '-' * 10)
         for f in ProblemData.flights:
-            print('\t', f)
+            print('\t', f, f.pilot.name if f.pilot else '----')
 
         print('\n', '-' * 10, 'PAIRINGS', '-' * 10)
         for p in ProblemData.pairings:
