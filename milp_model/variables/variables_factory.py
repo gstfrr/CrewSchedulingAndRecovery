@@ -4,17 +4,17 @@
 This file is used to define and implement the variables used in the optimization.
 """
 import itertools
-from collections import defaultdict
 from gurobipy import Model
 
-from ProblemData import ProblemData, DataDictionary, Pilot
+from ProblemData import ProblemData, DataDictionary
+from Domain import Flight, Pairing, Pilot
 from milp_model.variables.variables import FlightPilotAssignmentVar
 from milp_model.variables.variables import PairingPilotAssignmentVar
 from milp_model.variables.variables import PairingFlightAssignmentVar
 from milp_model.variables.variables import PairingFlightPilotAssignmentVar
 
 
-def create_flight_pilot_assignment_var(model: Model, pilots, flights) -> DataDictionary:
+def create_flight_pilot_assignment_var(model: Model, pilots: list[Pilot], flights: list[Flight]) -> DataDictionary:
     flight_pilot_assignment_vars = DataDictionary()
 
     pairs = itertools.product(flights, pilots)
@@ -29,7 +29,8 @@ def create_flight_pilot_assignment_var(model: Model, pilots, flights) -> DataDic
     return flight_pilot_assignment_vars
 
 
-def create_pairing_pilot_var(model, pairings, pilots, cic_table):
+def create_pairing_pilot_var(model: Model, pilots: list[Pilot], pairings: list[Pairing],
+                             cic_table: DataDictionary) -> DataDictionary:
     pairing_pilot_vars = DataDictionary()
     for pairing, pilot in itertools.product(pairings, pilots):
         obj = ProblemData.PILOT_SCHEDULE_CHANGED
@@ -41,7 +42,8 @@ def create_pairing_pilot_var(model, pairings, pilots, cic_table):
     return pairing_pilot_vars
 
 
-def create_pairing_flight_var(model, pairings, flights, pif_table):
+def create_pairing_flight_var(model: Model, flights: list[Flight], pairings: list[Pairing],
+                              pif_table: DataDictionary) -> DataDictionary:
     pairing_flight_vars = DataDictionary()
     for pairing, flight in itertools.product(pairings, flights):
         obj = ProblemData.ASSIGNING_PAIRING  # Assigning unplanned pairing
@@ -53,7 +55,7 @@ def create_pairing_flight_var(model, pairings, flights, pif_table):
     return pairing_flight_vars
 
 
-def create_pairing_flight_pilot_var(model, pairings, pilots):
+def create_pairing_flight_pilot_var(model: Model, pilots: list[Pilot], pairings: list[Pairing]) -> DataDictionary:
     pairing_flight_pilot_vars = DataDictionary()
     for pairing, pilot in itertools.product(pairings, pilots):
         obj = 0

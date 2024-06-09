@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import pandas as pd
 
 from Domain import Pairing
 
 
-def generate_pairings(flights, max_duty_time_hours=10):
+def generate_pairings(flights, max_duty_time_hours: float = 10) -> list[Pairing]:
     max_duty_time = timedelta(hours=max_duty_time_hours)
 
     # Generate initial pairings
@@ -24,7 +24,7 @@ def generate_pairings(flights, max_duty_time_hours=10):
                     combined_pairing = Pairing()
                     combined_pairing.flights = pairings[i].flights + pairings[j].flights
                     combined_pairing.total_duty_time = pairings[i].total_duty_time + pairings[j].total_duty_time + (
-                                pairings[j].flights[0].start - pairings[i].flights[-1].end)
+                            pairings[j].flights[0].start - pairings[i].flights[-1].end)
                     if combined_pairing.is_legal(max_duty_time):
                         pairings.append(combined_pairing)
 

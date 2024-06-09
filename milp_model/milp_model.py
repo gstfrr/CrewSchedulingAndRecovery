@@ -3,19 +3,21 @@
 
 This file is used to create an MILP model. The parameters, values, variables, constraints and Objective Function
 are stored into the Model and optimized. After the optimization, the values of the variables are retrieved and
-used to compose the Schedule solution (Dispatch Decision).
+used to compose the solution.
 """
-from pprint import pprint
 from timeit import default_timer as timer
-from gurobipy import Model, GRB, LinExpr
+from gurobipy import Model, GRB
 
-from ProblemData import ProblemData
-from milp_model.variables.variables_factory import create_flight_pilot_assignment_var, create_pairing_flight_pilot_var
+from Domain import Pairing, DataDictionary, Pilot, Flight
+
+from milp_model.variables.variables_factory import create_flight_pilot_assignment_var
+from milp_model.variables.variables_factory import create_pairing_flight_pilot_var
 from milp_model.variables.variables_factory import create_pairing_flight_var
 from milp_model.variables.variables_factory import create_pairing_pilot_var
 
-from milp_model.constraints.constraints_factory import create_idle_pilots_constraint, create_pairing_flight_constraint, \
-    create_max2_constraint
+from milp_model.constraints.constraints_factory import create_pairing_flight_constraint
+from milp_model.constraints.constraints_factory import create_max2_constraint
+from milp_model.constraints.constraints_factory import create_idle_pilots_constraint
 from milp_model.constraints.constraints_factory import create_flight_pilot_assignment_constraint
 from milp_model.constraints.constraints_factory import create_pairing_pilot_assignment_constraint
 from milp_model.constraints.constraints_factory import create_max_constraint
@@ -44,7 +46,7 @@ def set_parameters(model: Model) -> None:
     model.setParam('Heuristics', 0.8)
 
 
-def get_optimization(problem_data):
+def get_optimization(problem_data: dict[str, DataDictionary | list | list[Pairing]]) -> None:
     """This function is used to create the MILP model and optimize it.
     First it creates the model, then the variables, constraints and Objective Function. And after that, it optimizes
     and writes the output and results.
@@ -96,13 +98,6 @@ def get_optimization(problem_data):
     end = timer()
     print(f'\tConstraints creation time: {end - start} seconds')
 
-    '''Objective Function'''
-    # of = LinExpr()
-    # for pilot in pilots:
-    #     for flight in flights:
-    #         of += flight_pilot_assignment_vars.data[pilot][flight].variable
-    # model.setObjective(of, GRB.MAXIMIZE)
-
     '''Optimization'''
     clean_model(model)
     model.write('output/model.lp')
@@ -110,7 +105,7 @@ def get_optimization(problem_data):
         # If model is infeasible, let's find the conflicts.
         model.computeIIS()
         model.write("output/model.ilp")
-    except:
+    except Exception:
         print('\tModel feasible')
 
         model.optimize()
@@ -118,31 +113,40 @@ def get_optimization(problem_data):
         model.write('output/model.sol')
         model.write('output/model.mps')
 
-        print('---PAIRINGS---')
-        for pilot in pilots:
-            print(f'{pilot}:')
-            for pairing in pairings:
-                var = pairing_pilot_assignment_vars.data[pairing][pilot]
-                if var.variable.X > 0:
-                    pairing.original_pilot = pilot
-                    print(pairing)
-            print()
-
-        print('---FLIGHTS---')
-        print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}' +
-              f'/{len(flights)}')
-        for flight in flights:
-            print(f'{flight}: ')
-            for pilot in pilots:
-                var = flight_pilot_assignment_vars.data[flight][pilot]
-                if var.variable.X > 0:
-                    print(f'\t{pilot}', end='')
-            print()
-
-        for pilot in pilots:
-            for pairing in pairings:
-                var = pairing_pilot_assignment_vars.data[pairing][pilot]
-                if var.variable.X > 0:
-                    plot_flights(pairing)
-
+        print_pairings(pilots=pilots, pairings=pairings, pairing_pilot_assignment_vars=pairing_pilot_assignment_vars)
+        print_flights(pilots=pilots, flights=flights, flight_pilot_assignment_vars=flight_pilot_assignment_vars)
+        plot_pairings(pilots=pilots, pairings=pairings, pairing_pilot_assignment_vars=pairing_pilot_assignment_vars)
         # write_solution(flight_pilot_assignment_vars, 'output/solution.xlsx')
+
+
+def plot_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assignment_vars: DataDictionary) -> None:
+    for pairing in pairings:
+        for pilot in pilots:
+            var = pairing_pilot_assignment_vars.data[pairing][pilot]
+            if var.variable.X > 0:
+                plot_flights(pairing)
+
+
+def print_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assignment_vars: DataDictionary) -> None:
+    print('---PAIRINGS---')
+    for pilot in pilots:
+        print(f'{pilot}:')
+        for pairing in pairings:
+            var = pairing_pilot_assignment_vars.data[pairing][pilot]
+            if var.variable.X > 0:
+                pairing.original_pilot = pilot
+                print(pairing)
+        print()
+
+
+def print_flights(pilots: list[Pilot], flights: list[Flight], flight_pilot_assignment_vars: DataDictionary) -> None:
+    print('---FLIGHTS---')
+    print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}' +
+          f'/{len(flights)}')
+    for flight in flights:
+        print(f'{flight}: ')
+        for pilot in pilots:
+            var = flight_pilot_assignment_vars.data[flight][pilot]
+            if var.variable.X > 0:
+                print(f'\t{pilot}', end='')
+        print()

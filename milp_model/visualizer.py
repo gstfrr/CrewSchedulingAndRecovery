@@ -8,8 +8,10 @@ This visualizer plots the results of the scheduling in a browser window and it s
 import plotly.graph_objects as go
 import pandas as pd
 
+from Domain import Pairing
 
-def plot_flights(pairing):
+
+def plot_flights(pairing: Pairing):
     # Extract flight data for plotting
     flight_data = []
     flights = pairing.flights
@@ -71,5 +73,6 @@ def plot_flights(pairing):
     )
 
     # Show the figure
-    fig.write_image(f'output/images/chart_{pairing.original_pilot.name}.png', width=1920, height=1080, scale=2)
+    fig.write_image(width=1920, height=1080, scale=2,
+                    file=f'output/images/chart_{pairing.name}-{pairing.original_pilot.name}.png')
     # fig.show()

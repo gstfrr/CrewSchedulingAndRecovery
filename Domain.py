@@ -6,10 +6,10 @@ The entities are defined as classes and the data is stored in dictionaries for O
 """
 from datetime import datetime, timedelta
 from collections import defaultdict
-from typing import Any, Set, Self
+from typing import Any, Set, Iterable
 
 
-def get_leaves(struct) -> Set[Any]:
+def get_leaves(struct: Iterable) -> Set[Any]:
     """This is an useful function to flatten dictionaries into a list. It is used to iterate over the values of the
      dictionary without using nested loops in the keys.
 
@@ -29,7 +29,7 @@ def get_leaves(struct) -> Set[Any]:
     return values
 
 
-def rec_dd():
+def rec_dd() -> defaultdict:
     """Useful function to create a recursive dictionary. This is useful to avoid key errors when accessing."""
     return defaultdict(rec_dd)
 
@@ -41,7 +41,7 @@ class DataDictionary:
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.data = rec_dd()  # data is still visible for O(1) access
 
     def values(self) -> Set[Any]:
@@ -50,14 +50,14 @@ class DataDictionary:
 
 
 class Pilot:
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
         self.original_pairing = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Pilot({self.name})"
 
-    def assign_pairing(self, pairing):
+    def assign_pairing(self, pairing) -> None:
         self.original_pairing = pairing
         pairing.original_pilot = self
         for f in pairing.flights:
@@ -65,53 +65,52 @@ class Pilot:
 
 
 class Flight:
-    def __init__(self, origin, destination, start, end):
+    def __init__(self, origin, destination, start, end) -> None:
         self.origin = origin
         self.destination = destination
 
         self._name = None
 
-        self.start = datetime.strptime(start, "%H:%M")
-        self.end = datetime.strptime(end, "%H:%M")
+        self.start = start
+        self.end = end
         self.pilot = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self._name}[{self.origin}->{self.destination}]'
-        # return f'F({self._name})'
 
     @property
-    def name(self):
-        return
+    def name(self) -> str:
+        return self._name
 
     @name.setter
-    def name(self, name):
+    def name(self, name: str) -> None:
         self._name = name
 
 
 class Pairing:
-    def __init__(self):
+    def __init__(self) -> None:
         self._name = None
         self.flights = []
         self.total_duty_time = timedelta()
         self.original_pilot = None
 
     @property
-    def start(self):
+    def start(self) -> datetime:
         return min(f.start for f in self.flights)
 
     @property
-    def end(self):
+    def end(self) -> datetime:
         return max(f.end for f in self.flights)
 
     @property
-    def name(self):
+    def name(self) -> str:
         return f'P{self._name}'
 
     @name.setter
-    def name(self, name):
+    def name(self, name) -> None:
         self._name = name
 
-    def add_flight(self, flight):
+    def add_flight(self, flight: Flight) -> None:
         if not self.flights:
             self.flights.append(flight)
             self.total_duty_time = flight.end - flight.start
@@ -121,13 +120,13 @@ class Pairing:
             self.total_duty_time += layover + (flight.end - flight.start)
             self.flights.append(flight)
 
-    def is_legal(self, max_duty_time):
+    def is_legal(self, max_duty_time: timedelta) -> bool:
         return self.total_duty_time <= max_duty_time
 
-    def ends_at(self, airport):
+    def ends_at(self, airport) -> bool:
         return self.flights[-1].destination == airport if self.flights else True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         pilot_name = self.original_pilot.name if self.original_pilot else '----'
         return (f'Pairing({self.name}) - {pilot_name} - {len(self.flights)} - ' +
                 ''.join(f'{f}->' for f in self.flights) + f' - {self.total_duty_time}')

@@ -7,19 +7,19 @@ and it also provides direct access to the variable indexes, to be used later wit
 """
 
 from abc import ABC, abstractmethod
-from gurobipy import Model, GRB
-from ProblemData import ProblemData
+from gurobipy import Model, GRB, Var
+from Domain import Flight, Pilot, Pairing
 
 
 class Variable(ABC):
     """Main abstract class for the variables."""
 
-    def __init__(self, objective=0):
+    def __init__(self, objective: float = 0.0) -> None:
         self.variable = None
         self.objective = objective
 
     @abstractmethod
-    def _add_variable(self, model: Model):
+    def _add_variable(self, model: Model) -> Var:
         """This is the function that will invoke the Gurobi function to add the variable to the model.
 
         :param model: Model: Gurobi model.
@@ -28,7 +28,7 @@ class Variable(ABC):
         pass
 
     @property
-    def name(self):
+    def name(self) -> str:
         """ """
         return self.__repr__()
 
@@ -36,14 +36,14 @@ class Variable(ABC):
 class FlightPilotAssignmentVar(Variable):
     """ """
 
-    def __init__(self, model, pilot, flight, objective=0):
+    def __init__(self, model: Model, pilot: Pilot, flight: Flight, objective=0) -> None:
         super().__init__(objective=objective)
         self.pilot = pilot
         self.flight = flight
 
         self.variable = self._add_variable(model=model)
 
-    def _add_variable(self, model: Model):
+    def _add_variable(self, model: Model) -> Var:
         """This is the function that will invoke the Gurobi function to add the variable to the model.
 
         :param model: Model: Gurobi model.
@@ -51,50 +51,44 @@ class FlightPilotAssignmentVar(Variable):
         """
         return model.addVar(name=self.name, vtype=GRB.BINARY, obj=self.objective)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'FlightPilotAssignment_{self.flight}_{self.pilot}'
 
 
 class PairingPilotAssignmentVar(Variable):
     """ """
 
-    def __init__(self, model, pilot, pairing, objective):
+    def __init__(self, model: Model, pilot: Pilot, pairing: Pairing, objective: float) -> None:
         super().__init__(objective=objective)
         self.pilot = pilot
         self.pairing = pairing
 
         self.variable = self._add_variable(model=model)
 
-    def _add_variable(self, model: Model):
+    def _add_variable(self, model: Model) -> Var:
         """This is the function that will invoke the Gurobi function to add the variable to the model.
 
         :param model: Model: Gurobi model.
 
         """
 
-        lb, ub = 0, 1
-        # if self.name == 'PairingPilotAssignment_P25_Pilot(Alice)':
-        #     lb, ub = 1, 1
-        # if self.name == 'PairingPilotAssignment_P14_Pilot(Bob)':
-        #     lb, ub = 1,1
+        return model.addVar(name=self.name, vtype=GRB.BINARY, obj=self.objective)
 
-        return model.addVar(name=self.name, vtype=GRB.BINARY, obj=self.objective, lb=lb, ub=ub)
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'PairingPilotAssignment_{self.pairing.name}_{self.pilot}'
 
 
 class PairingFlightAssignmentVar(Variable):
     """ """
 
-    def __init__(self, model, flight, pairing, objective):
+    def __init__(self, model: Model, flight: Pilot, pairing: Pairing, objective: float) -> None:
         super().__init__(objective=objective)
         self.pairing = pairing
         self.flight = flight
 
         self.variable = self._add_variable(model=model)
 
-    def _add_variable(self, model: Model):
+    def _add_variable(self, model: Model) -> Var:
         """This is the function that will invoke the Gurobi function to add the variable to the model.
 
         :param model: Model: Gurobi model.
@@ -102,14 +96,14 @@ class PairingFlightAssignmentVar(Variable):
         """
         return model.addVar(name=self.name, vtype=GRB.BINARY, obj=self.objective)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'PairingFlightAssignment_{self.pairing.name}_{self.flight}'
 
 
 class PairingFlightPilotAssignmentVar(Variable):
     """ """
 
-    def __init__(self, model, flight, pairing, pilot, objective):
+    def __init__(self, model, flight: Flight, pairing: Pairing, pilot: Pilot, objective: float) -> None:
         super().__init__(objective=objective)
         self.pairing = pairing
         self.flight = flight
@@ -117,7 +111,7 @@ class PairingFlightPilotAssignmentVar(Variable):
 
         self.variable = self._add_variable(model=model)
 
-    def _add_variable(self, model: Model):
+    def _add_variable(self, model: Model) -> Var:
         """This is the function that will invoke the Gurobi function to add the variable to the model.
 
         :param model: Model: Gurobi model.
@@ -125,5 +119,5 @@ class PairingFlightPilotAssignmentVar(Variable):
         """
         return model.addVar(name=self.name, vtype=GRB.BINARY, obj=self.objective)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'PairingFlightPilotAssignment_{self.pairing.name}_{self.flight}_{self.pilot}'

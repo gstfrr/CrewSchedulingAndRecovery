@@ -5,45 +5,31 @@ This file is used to define all the domain classes for basic and complex entitie
 The entities are defined as classes and the data is stored in dictionaries for O(1) time access and manipulation.
 """
 import math
-from datetime import datetime
-from pprint import pprint
 
-from Domain import DataDictionary, Flight, Pilot
+from Domain import DataDictionary, Flight, Pilot, Pairing
 from pairing_generator import generate_pairings
 
-days_per_week = 7
 
+def create_pilots(input_pilots: list[dict]) -> None:
+    for p in input_pilots:
+        pilot = Pilot(name=p['name'])
+        ProblemData.crew.append(pilot)
 
-def create_pilots():
-    ProblemData.crew = [
-        Pilot('Alice'), Pilot('Bob'), Pilot('David'),
-        Pilot('Eve'), Pilot('Frank'), Pilot('George'),
-        Pilot('John'), Pilot('Albert'), Pilot('Mary'), Pilot('Kate'),
-        Pilot('Carl'), Pilot('Julio'), Pilot('Joanne'), Pilot('Sandra'),
-    ]
     ProblemData.crew.sort(key=lambda x: x.name)
 
 
-def create_flights():
-    ProblemData.flights = [
-        Flight("JFK", "LAX", "08:15", "10:00"),
-        Flight("JFK", "ODR", "08:30", "09:00"),
-        Flight("LAX", "ODR", "11:00", "13:00"),
-        Flight("VOV", "JFK", "07:00", "10:15"),
-        Flight("WAR", "VOV", "08:30", "09:30"),
-        Flight("LAX", "VOV", "11:00", "17:00"),
-        Flight("ODR", "DFW", "06:00", "15:30"),
-        Flight("DFW", "JFK", "17:00", "20:30"),
-        Flight("ODR", "WAR", "11:00", "14:45"),
-        Flight("WAR", "DFW", "13:30", "17:30"),
-        Flight("WAR", "JFK", "17:00", "20:30")
-    ]
+def create_flights(input_flights: list[dict]) -> None:
+    for f in input_flights:
+        flight = Flight(origin=f['origin'], destination=f['destination'], start=f['start'], end=f['end'])
+        ProblemData.flights.append(flight)
+
     ProblemData.flights.sort(key=lambda x: x.origin)
     for i, f in enumerate(ProblemData.flights):
         f.name = i
+        print(f'{f.origin}\t{f.destination}\t{f.start}\t{f.end}\t')
 
 
-def create_pif_table():
+def create_pif_table() -> None:
     for pairing in ProblemData.pairings:
         for flight in ProblemData.flights:
             if flight in pairing.flights:
@@ -52,7 +38,7 @@ def create_pif_table():
                 ProblemData.pif_table.data[pairing][flight] = 0
 
 
-def create_cic_table():
+def create_cic_table() -> None:
     for pairing in ProblemData.pairings:
         for pilot in ProblemData.crew:
             if pairing.original_pilot == pilot:
@@ -61,16 +47,20 @@ def create_cic_table():
                 ProblemData.cic_table.data[pairing][pilot] = 0
 
 
+def set_parameters(input_parameters: list[dict]) -> None:
+    for p in input_parameters:
+        setattr(ProblemData, p['name'], p['value'])
+
+
 class ProblemData:
     """This class is used to store all the data of the problem. It is a static class, so it can be accessed anywhere"""
-    UNASSIGNED_FLIGHT = 1
-    ASSIGNING_PAIRING = 1
-    UNASSIGNING_PAIRING = 1
-    PILOT_SCHEDULE_CHANGED = 1
+    INITIAL_DATE = None
+    BACKUP_PILOTS_PERCENT = None
 
-    BACKUP_PILOTS_PERCENT = .2
-
-    INITIAL_DATE = datetime(2024, 1, 1)
+    UNASSIGNED_FLIGHT = None
+    ASSIGNING_PAIRING = None
+    UNASSIGNING_PAIRING = None
+    PILOT_SCHEDULE_CHANGED = None
 
     crew = []
     flights = []
@@ -79,14 +69,17 @@ class ProblemData:
     cic_table = DataDictionary()
 
     @staticmethod
-    def basic_process(input_data):
-        print()
+    def basic_process(input_data: dict) -> dict[str, DataDictionary | list | list[Pairing]]:
+        # '''Basic Entities'''
 
-        '''Basic Entities'''
+        set_parameters(input_data['Parameters'])
+
         # C - set of crew (pilots)
-        create_pilots()
+        create_pilots(input_data['Crew'])
+
         # F - set of non-cancelled flights
-        create_flights()
+        create_flights(input_data['Flights'])
+
         # P - set of pairings generated from flights F
         ProblemData.pairings = generate_pairings(ProblemData.flights)
 
