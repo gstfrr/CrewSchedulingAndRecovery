@@ -132,6 +132,7 @@ def get_optimization(problem_data):
             print()
 
         print('---FLIGHTS---')
+        print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}')
         for flight in flights:
             print(f'{flight}: ')
             for pilot in pilots:
@@ -140,12 +141,10 @@ def get_optimization(problem_data):
                     print(f'\t{pilot}', end='')
             print()
 
-        print('---PLOT PAIRINGS---')
         for pilot in pilots:
             for pairing in pairings:
                 var = pairing_pilot_assignment_vars.data[pairing][pilot]
                 if var.variable.X > 0:
                     plot_flights(pairing)
-            print()
 
         # write_solution(flight_pilot_assignment_vars, 'output/solution.xlsx')
