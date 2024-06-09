@@ -60,20 +60,32 @@ class Pilot:
     def assign_pairing(self, pairing):
         self.original_pairing = pairing
         pairing.original_pilot = self
+        for f in pairing.flights:
+            f.pilot = self
 
 
 class Flight:
-    def __init__(self, name, origin, destination, start, end):
-        self.name = name
-
+    def __init__(self, origin, destination, start, end):
         self.origin = origin
         self.destination = destination
 
+        self._name = None
+
         self.start = datetime.strptime(start, "%H:%M")
         self.end = datetime.strptime(end, "%H:%M")
+        self.pilot = None
 
     def __repr__(self):
-        return f"Flight({self.name})"
+        # return f'{self._name}[{self.origin}->{self.destination}]'
+        return f'F({self._name})'
+
+    @property
+    def name(self):
+        return
+
+    @name.setter
+    def name(self, name):
+        self._name = name
 
 
 class Pairing:
@@ -84,8 +96,16 @@ class Pairing:
         self.original_pilot = None
 
     @property
+    def start(self):
+        return min(f.start for f in self.flights)
+
+    @property
+    def end(self):
+        return max(f.end for f in self.flights)
+
+    @property
     def name(self):
-        return self._name
+        return f'P{self._name}'
 
     @name.setter
     def name(self, name):
@@ -104,7 +124,10 @@ class Pairing:
     def is_legal(self, max_duty_time):
         return self.total_duty_time <= max_duty_time
 
+    def ends_at(self, airport):
+        return self.flights[-1].destination == airport if self.flights else True
+
     def __repr__(self):
         pilot_name = self.original_pilot.name if self.original_pilot else '----'
-        return (f'Pairing({self.name}) - {pilot_name} - {len(self.flights)} ' +
-                ''.join(f'{f.origin}->' for f in self.flights) + f' - {self.total_duty_time}')
+        return (f'Pairing({self.name}) - {pilot_name} - {len(self.flights)} - ' +
+                ''.join(f'{f}->' for f in self.flights) + f' - {self.total_duty_time}')

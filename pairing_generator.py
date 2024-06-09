@@ -16,13 +16,17 @@ def generate_pairings(flights, max_duty_time_hours=10):
 
     # Combine flights into pairings
     for i in range(len(pairings)):
-        for j in range(i + 1, len(pairings)):
-            if pairings[i].is_legal(max_duty_time) and pairings[j].is_legal(max_duty_time):
-                combined_pairing = Pairing()
-                combined_pairing.flights = pairings[i].flights + pairings[j].flights
-                combined_pairing.total_duty_time = pairings[i].total_duty_time + pairings[j].total_duty_time
-                if combined_pairing.is_legal(max_duty_time):
-                    pairings.append(combined_pairing)
+        for j in range(len(pairings)):
+            if i != j and pairings[i].is_legal(max_duty_time) and pairings[j].is_legal(max_duty_time):
+                last_airport = pairings[i].flights[-1].destination
+                next_airport = pairings[j].flights[0].origin
+                if last_airport == next_airport:
+                    combined_pairing = Pairing()
+                    combined_pairing.flights = pairings[i].flights + pairings[j].flights
+                    combined_pairing.total_duty_time = pairings[i].total_duty_time + pairings[j].total_duty_time + (
+                                pairings[j].flights[0].start - pairings[i].flights[-1].end)
+                    if combined_pairing.is_legal(max_duty_time):
+                        pairings.append(combined_pairing)
 
     # Filter out illegal pairings
     pairings = [pairing for pairing in pairings if pairing.is_legal(max_duty_time)]
