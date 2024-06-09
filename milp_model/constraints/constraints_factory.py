@@ -33,19 +33,19 @@ def create_flight_pilot_assignment_constraint(model: Model, pilots, flights, fli
 def create_pairing_pilot_assignment_constraint(model: Model, pilots, pairings, pairing_pilot_assignment_vars) -> None:
     '''Guarantees 1 pilot per pairing and 1 pairing per pilot'''
 
-    for pilot in pilots:
-        lhs = LinExpr()
-        for pairing in pairings:
-            lhs += pairing_pilot_assignment_vars.data[pairing][pilot].variable
-        name = f'Pairing_Pilot_Assignment_Const_{pilot}'
-        model.addConstr(lhs <= LinExpr(1), name=name)
-
     for pairing in pairings:
         lhs = LinExpr()
         for pilot in pilots:
             lhs += pairing_pilot_assignment_vars.data[pairing][pilot].variable
         name = f'Pilot_Pairing_Assignment_Const_{pairing.name}'
         model.addConstr(lhs <= LinExpr(1), name=name)
+
+    # for pilot in pilots:
+    #     lhs = LinExpr()
+    #     for pairing in pairings:
+    #         lhs += pairing_pilot_assignment_vars.data[pairing][pilot].variable
+    #     name = f'Pairing_Pilot_Assignment_Const_{pilot}'
+    #     model.addConstr(lhs <= LinExpr(1), name=name)
 
 
 def create_pairing_flight_constraint(model, pairings, flights, pairing_flight_assignment_vars):
@@ -71,7 +71,7 @@ def create_max_constraint(model, pairings, pilots, pairing_pilot_assignment_vars
 
             pairing_pilot_var = pairing_pilot_assignment_vars.data[pairing][pilot].variable
             name = f'Max_Constraint_{pilot}_{pairing.name}'
-            model.addConstr(lhs <= pairing_pilot_var * len(pairing.flights), name=name)
+            model.addConstr(lhs == pairing_pilot_var * len(pairing.flights), name=name)
 
 
 def create_max2_constraint(model, pairings, pilots, flights, flight_pilot_assignment_vars, pairing_flight_pilot_vars):

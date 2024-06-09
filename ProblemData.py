@@ -4,6 +4,7 @@
 This file is used to define all the domain classes for basic and complex entities that will be used in the optimization.
 The entities are defined as classes and the data is stored in dictionaries for O(1) time access and manipulation.
 """
+import math
 from datetime import datetime
 from pprint import pprint
 
@@ -16,8 +17,9 @@ days_per_week = 7
 def create_pilots():
     ProblemData.crew = [
         Pilot('Alice'), Pilot('Bob'), Pilot('David'),
-        # Pilot('Eve'), Pilot('Frank'), Pilot('George'),
-        # Pilot('John'), Pilot('Albert'), Pilot('Mary'), Pilot('Kate'),
+        Pilot('Eve'), Pilot('Frank'), Pilot('George'),
+        Pilot('John'), Pilot('Albert'), Pilot('Mary'), Pilot('Kate'),
+        Pilot('Carl'), Pilot('Julio'), Pilot('Joanne'), Pilot('Sandra'),
     ]
     ProblemData.crew.sort(key=lambda x: x.name)
 
@@ -33,8 +35,8 @@ def create_flights():
         Flight("ODR", "DFW", "06:00", "15:30"),
         Flight("DFW", "JFK", "17:00", "20:30"),
         Flight("ODR", "WAR", "11:00", "14:45"),
-        # Flight("WAR", "DFW", "13:30", "17:30"),
-        # Flight("WAR", "JFK", "17:00", "20:30")
+        Flight("WAR", "DFW", "13:30", "17:30"),
+        Flight("WAR", "JFK", "17:00", "20:30")
     ]
     ProblemData.flights.sort(key=lambda x: x.origin)
     for i, f in enumerate(ProblemData.flights):
@@ -66,7 +68,7 @@ class ProblemData:
     UNASSIGNING_PAIRING = 1
     PILOT_SCHEDULE_CHANGED = 1
 
-    BACKUP_PILOTS_PERCENT = .1
+    BACKUP_PILOTS_PERCENT = .2
 
     INITIAL_DATE = datetime(2024, 1, 1)
 
@@ -76,21 +78,19 @@ class ProblemData:
     pif_table = DataDictionary()
     cic_table = DataDictionary()
 
-    demands = DataDictionary()
-
     @staticmethod
     def basic_process(input_data):
         print()
 
         '''Basic Entities'''
+        # C - set of crew (pilots)
         create_pilots()
+        # F - set of non-cancelled flights
         create_flights()
+        # P - set of pairings generated from flights F
         ProblemData.pairings = generate_pairings(ProblemData.flights)
 
-        print('\tNumber of pilots: ', len(ProblemData.crew))
-        print('\tNumber of flights: ', len(ProblemData.flights))
-        print('\tNumber of pairings: ', len(ProblemData.pairings))
-
+        '''Assigning Pilots to Pairings/Flights'''
         ProblemData.crew[0].assign_pairing(ProblemData.pairings[16])
         ProblemData.crew[1].assign_pairing(ProblemData.pairings[5])  # 23
         ProblemData.crew[2].assign_pairing(ProblemData.pairings[17])
@@ -102,11 +102,24 @@ class ProblemData:
         # ProblemData.crew[8].assign_pairing(ProblemData.pairings[22])
         # ProblemData.crew[9].assign_pairing(ProblemData.pairings[25])
 
-        pprint(ProblemData.pairings)
-        # return
-
+        # Pif = 1 if and only if pairing i includes flight f
         create_pif_table()
+        # Cif = 1 if and only if pairing i was on original schedule of crew c
         create_cic_table()
+
+        print('\n', '-' * 10, 'STATS', '-' * 10)
+        print('\tNumber of flights: ', len(ProblemData.flights))
+        print('\tNumber of pairings: ', len(ProblemData.pairings))
+        print('\tNumber of pilots: ', len(ProblemData.crew))
+        print('\tNumber of idle pilots: ', math.ceil(len(ProblemData.crew) * ProblemData.BACKUP_PILOTS_PERCENT))
+
+        print('\n', '-' * 10, 'FLIGHTS', '-' * 10)
+        for f in ProblemData.flights:
+            print('\t', f)
+
+        print('\n', '-' * 10, 'PAIRINGS', '-' * 10)
+        for p in ProblemData.pairings:
+            print(p)
 
         # Save all our data in the dictionary below. Since ProblemData is static,
         # these values can be accessed by the class itself.

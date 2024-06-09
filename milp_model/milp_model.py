@@ -61,9 +61,6 @@ def get_optimization(problem_data):
     pif_table = problem_data['pif_table']  # Pif = 1 if and only if pairing i includes flight f
     cic_table = problem_data['cic_table']  # Cif = 1 if and only if pairing i was on original schedule of crew c
 
-    for f in flights:
-        print(f, f.pilot)
-
     """Model Creation and Parameters"""
     model = Model('Crew Scheduling')
     model.setAttr(attrname='ModelSense', arg1=GRB.MAXIMIZE)
@@ -132,7 +129,8 @@ def get_optimization(problem_data):
             print()
 
         print('---FLIGHTS---')
-        print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}')
+        print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}' +
+              f'/{len(flights)}')
         for flight in flights:
             print(f'{flight}: ')
             for pilot in pilots:
