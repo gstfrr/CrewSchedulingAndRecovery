@@ -76,8 +76,8 @@ class Flight:
         self.pilot = None
 
     def __repr__(self):
-        # return f'{self._name}[{self.origin}->{self.destination}]'
-        return f'F({self._name})'
+        return f'{self._name}[{self.origin}->{self.destination}]'
+        # return f'F({self._name})'
 
     @property
     def name(self):

@@ -9,56 +9,56 @@ from gurobipy import Model
 
 from ProblemData import ProblemData, DataDictionary, Pilot
 from milp_model.variables.variables import FlightPilotAssignmentVar
-from milp_model.variables.variables import PilotPairingAssignmentVar
-from milp_model.variables.variables import StartTimeVar
-from milp_model.variables.variables import PrecedenceVar
+from milp_model.variables.variables import PairingPilotAssignmentVar
+from milp_model.variables.variables import PairingFlightAssignmentVar
+from milp_model.variables.variables import PairingFlightPilotAssignmentVar
 
 
 def create_flight_pilot_assignment_var(model: Model, pilots, flights) -> DataDictionary:
     flight_pilot_assignment_vars = DataDictionary()
 
-    pairs = itertools.product(pilots, flights)
+    pairs = itertools.product(flights, pilots)
 
-    for pilot, flight in pairs:
-        var = FlightPilotAssignmentVar(model, pilot=pilot, flight=flight, objective=1)
-        flight_pilot_assignment_vars.data[pilot][flight] = var
+    for flight, pilot in pairs:
+        obj = ProblemData.UNASSIGNED_FLIGHT
+        if flight.pilot == pilot:
+            obj = 1
+        var = FlightPilotAssignmentVar(model, pilot=pilot, flight=flight, objective=obj)
+        flight_pilot_assignment_vars.data[flight][pilot] = var
 
     return flight_pilot_assignment_vars
 
 
-def create_precedence_var(model: Model, pilots, flights) -> DataDictionary:
-    precedence_vars = DataDictionary()
+def create_pairing_pilot_var(model, pairings, pilots, cic_table):
+    pairing_pilot_vars = DataDictionary()
+    for pairing, pilot in itertools.product(pairings, pilots):
+        obj = ProblemData.PILOT_SCHEDULE_CHANGED
+        if cic_table.data[pairing][pilot]:
+            obj = 1
+        var = PairingPilotAssignmentVar(model, pairing=pairing, pilot=pilot, objective=obj)
+        pairing_pilot_vars.data[pairing][pilot] = var
 
-    for pilot, flight1, flight2 in itertools.product(pilots, flights, flights):
-        if flight1 != flight2:
-            var = PrecedenceVar(model, pilot=pilot, flight1=flight1, flight2=flight2)
-            precedence_vars.data[pilot][flight1][flight2] = var
-
-    return precedence_vars
-
-
-def create_start_time_var(model: Model, pilots, flights) -> DataDictionary:
-    star_time_vars = DataDictionary()
-
-    pairs = itertools.product(pilots, flights)
-
-    for pilot, flight in pairs:
-        var = StartTimeVar(model, pilot=pilot, flight=flight)
-        star_time_vars.data[pilot][flight] = var
-
-    return star_time_vars
+    return pairing_pilot_vars
 
 
-def create_pilot_pairing_assignment_var(model: Model, pilots, pairings, sic_table) -> DataDictionary:
-    pilot_pairing_assignment_vars = DataDictionary()
+def create_pairing_flight_var(model, pairings, flights, pif_table):
+    pairing_flight_vars = DataDictionary()
+    for pairing, flight in itertools.product(pairings, flights):
+        obj = ProblemData.ASSIGNING_PAIRING  # Assigning unplanned pairing
+        if pif_table.data[pairing][flight]:
+            obj = ProblemData.UNASSIGNING_PAIRING  # Unassigning original pairing
+        var = PairingFlightAssignmentVar(model, pairing=pairing, flight=flight, objective=obj)
+        pairing_flight_vars.data[pairing][flight] = var
 
-    pairs = itertools.product(pilots, pairings)
+    return pairing_flight_vars
 
-    for pilot, pairing in pairs:
-        objective = 1
-        if sic_table.data[pairing][pilot] == 0:
-            objective = -ProblemData.PILOT_SCHEDULE_CHANGED
-        var = PilotPairingAssignmentVar(model, pilot=pilot, pairing=pairing, objective=objective)
-        pilot_pairing_assignment_vars.data[pilot][pairing] = var
 
-    return pilot_pairing_assignment_vars
+def create_pairing_flight_pilot_var(model, pairings, pilots):
+    pairing_flight_pilot_vars = DataDictionary()
+    for pairing, pilot in itertools.product(pairings, pilots):
+        obj = 0
+        for flight in pairing.flights:
+            var = PairingFlightPilotAssignmentVar(model, pairing=pairing, flight=flight, pilot=pilot, objective=obj)
+            pairing_flight_pilot_vars.data[pairing][flight][pilot] = var
+
+    return pairing_flight_pilot_vars

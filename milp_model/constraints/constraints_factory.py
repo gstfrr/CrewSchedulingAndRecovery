@@ -7,59 +7,81 @@ import math
 
 from gurobipy import LinExpr, Model
 
+from ProblemData import ProblemData
 
-def create_idle_pilots_constraint(model: Model, pilots, flight_pilot_assignment_vars) -> None:
-    idle_pilots_number = math.floor(4 * len(pilots) / 5)
+
+def create_idle_pilots_constraint(model: Model, pilots, pairing_pilot_assignment_vars) -> None:
+    '''Guarantees x% of the pilots are idle.'''
+    max_working_pilots = math.floor((1 - ProblemData.BACKUP_PILOTS_PERCENT) * len(pilots))
 
     _sum = LinExpr()
-    for assignment in flight_pilot_assignment_vars.values():
+    for assignment in pairing_pilot_assignment_vars.values():
         _sum += assignment.variable
     name = 'Idle_Pilots_Constraint'
-    model.addConstr(_sum <= idle_pilots_number, name=name)
+    model.addConstr(_sum <= max_working_pilots, name=name)
 
 
 def create_flight_pilot_assignment_constraint(model: Model, pilots, flights, flight_pilot_assignment_vars) -> None:
     for flight in flights:
-        exp = LinExpr()
+        lhs = LinExpr()
         for pilot in pilots:
-            exp += flight_pilot_assignment_vars.data[pilot][flight].variable
+            lhs += flight_pilot_assignment_vars.data[flight][pilot].variable
         name = f'Flight_Pilot_Assignment_Const_{flight}'
-        model.addConstr(exp <= LinExpr(1), name=name)
+        model.addConstr(lhs <= LinExpr(1), name=name)
 
 
-def create_precedence_integrity_constraint(model: Model, pilots, flights, precedence_vars) -> None:
-    for pilot in pilots:
-        for flight1 in flights:
-            for flight2 in flights:
-                if flight1 != flight2:
-                    model.addConstr(precedence_vars.data[pilot][flight1][flight2].variable +
-                                    precedence_vars.data[pilot][flight2][flight1].variable == 1,
-                                    name=f'PrecedenceIntegrity_({pilot})_({flight1})_({flight2})')
-
-
-def create_precedence_constraint(model: Model, start_time_vars, precedence_vars, flights, pilots) -> None:
-    big_m = sum([x.duration for x in flights])
+def create_pairing_pilot_assignment_constraint(model: Model, pilots, pairings, pairing_pilot_assignment_vars) -> None:
+    '''Guarantees 1 pilot per pairing and 1 pairing per pilot'''
 
     for pilot in pilots:
-        for flight1 in flights:
-            for flight2 in flights:
-                if flight1 != flight2:
-                    lhs1 = start_time_vars.data[pilot][flight1].variable + flight1.duration - start_time_vars.data[pilot][flight2].variable
-                    rhs1 = big_m * precedence_vars.data[pilot][flight1][flight2].variable
-                    model.addConstr(lhs1 <= rhs1, name=f'PrecedenceBigM_({pilot})_({flight1})_({flight2})')
+        lhs = LinExpr()
+        for pairing in pairings:
+            lhs += pairing_pilot_assignment_vars.data[pairing][pilot].variable
+        name = f'Pairing_Pilot_Assignment_Const_{pilot}'
+        model.addConstr(lhs <= LinExpr(1), name=name)
 
-                    lhs2 = start_time_vars.data[pilot][flight2].variable + flight2.duration - start_time_vars.data[pilot][flight1].variable
-                    rhs2 = big_m * (1 - precedence_vars.data[pilot][flight1][flight2].variable)
-                    model.addConstr(lhs2 <= rhs2, name=f'PrecedenceBigM-1_({pilot})_({flight1})_({flight2})')
+    for pairing in pairings:
+        lhs = LinExpr()
+        for pilot in pilots:
+            lhs += pairing_pilot_assignment_vars.data[pairing][pilot].variable
+        name = f'Pilot_Pairing_Assignment_Const_{pairing.name}'
+        model.addConstr(lhs <= LinExpr(1), name=name)
 
 
-    # for m in precedence_vars.keys():
-    #     for w1 in precedence_vars[m].keys():
-    #         for w2 in precedence_vars[m][w1].keys():
-    #             lhs1 = start_time_vars[m][w1] + duration[m][w1] - start_time_vars[m][w2]
-    #             rhs1 = big_m * precedence_vars[m][w1][w2]
-    #             model.addConstr(lhs1 <= rhs1, name=f'PrecedenceBigM_M({m.name})_-_W1({w1.name})-_W2({w2.name})')
-    #
-    #             lhs2 = start_time_vars[m][w2] + duration[m][w2] - start_time_vars[m][w1]
-    #             rhs2 = big_m * (1 - precedence_vars[m][w1][w2])
-    #             model.addConstr(lhs2 <= rhs2, name=f'PrecedenceBigM-1_M({m.name})_-_W1({w1.name})-_W2({w2.name})')
+def create_pairing_flight_constraint(model, pairings, flights, pairing_flight_assignment_vars):
+    '''Guarantees that the pairing will have all of its flights assigned.'''
+    for pairing in pairings:
+        lhs = LinExpr()
+        rhs = len(pairing.flights)
+
+        for flight in flights:
+            if flight in pairing.flights:
+                lhs += pairing_flight_assignment_vars.data[pairing][flight].variable
+
+        name = f'Pairing_Flight_Const_{pairing.name}'
+        model.addConstr(lhs == rhs, name=name)
+
+
+def create_max_constraint(model, pairings, pilots, pairing_pilot_assignment_vars, pairing_flight_pilot_vars):
+    for pilot in pilots:
+        for pairing in pairings:
+            lhs = LinExpr()
+            for flight in pairing.flights:
+                lhs += pairing_flight_pilot_vars.data[pairing][flight][pilot].variable
+
+            pairing_pilot_var = pairing_pilot_assignment_vars.data[pairing][pilot].variable
+            name = f'Max_Constraint_{pilot}_{pairing.name}'
+            model.addConstr(lhs <= pairing_pilot_var * len(pairing.flights), name=name)
+
+
+def create_max2_constraint(model, pairings, pilots, flights, flight_pilot_assignment_vars, pairing_flight_pilot_vars):
+    for pilot in pilots:
+        for flight in flights:
+            lhs = LinExpr()
+            for pairing in pairings:
+                if flight in pairing.flights:
+                    lhs += pairing_flight_pilot_vars.data[pairing][flight][pilot].variable
+
+            flight_pilot_var = flight_pilot_assignment_vars.data[flight][pilot].variable
+            name = f'Max2_Constraint_{pilot}_{flight}'
+            model.addConstr(lhs == flight_pilot_var, name=name)
