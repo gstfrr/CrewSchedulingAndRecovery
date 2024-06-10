@@ -113,65 +113,66 @@ def get_optimization(problem_data: dict[str, DataDictionary | list | list[Pairin
         model.write('output/model.sol')
         model.write('output/model.mps')
 
-        print_pairings(pilots=pilots, pairings=pairings, pairing_pilot_assignment_vars=pairing_pilot_assignment_vars)
-        print_flights(pilots=pilots, flights=flights, flight_pilot_assignment_vars=flight_pilot_assignment_vars)
-        plot_pairings(pilots=pilots, pairings=pairings, pairing_pilot_assignment_vars=pairing_pilot_assignment_vars)
+        update_data(pilots=pilots, pairings=pairings, pairing_pilot_assignment_vars=pairing_pilot_assignment_vars)
+        print_pairings(pilots=pilots)
+        print_flights(flights=flights, flight_pilot_assignment_vars=flight_pilot_assignment_vars)
+        plot_pairings(pilots=pilots)
         # write_solution(flight_pilot_assignment_vars, 'output/solution.xlsx')
 
 
-def plot_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assignment_vars: DataDictionary) -> None:
-    """Function used to plot the timeline charts for each pairing. The charts are stored in the output folder.
+def update_data(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assignment_vars: DataDictionary) -> None:
+    """Function used to apply the pilots to the pairings and flights.
 
     :param pilots: list[Pilot]: List of pilots from the input data.
     :param pairings: list[Pairing]: List of pairings from the input data.
     :param pairing_pilot_assignment_vars: DataDictionary: Dictionary with vars for each pairing and pilot.
 
     """
-    for pairing in pairings:
-        for pilot in pilots:
-            var = pairing_pilot_assignment_vars.data[pairing][pilot]
-            if var.variable.X > 0:
-                plot_flights(pairing)
-
-
-def print_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assignment_vars: DataDictionary) -> None:
-    """Function used to quick visualize the pilots and the pairings assigned to them.
-
-    :param pilots: list[Pilot]: List of pilots from the input data.
-    :param pairings: list[Pairing]: List of pairings from the input data.
-    :param pairing_pilot_assignment_vars: DataDictionary: Dictionary with vars for each pairing and pilot.
-
-    """
-    print('---PAIRINGS---')
     for pilot in pilots:
-        print(f'{pilot}:')
+        pilot.clear_pairings()
         for pairing in pairings:
             var = pairing_pilot_assignment_vars.data[pairing][pilot]
             if var.variable.X > 0:
-                pairing.original_pilot = pilot
-                print(pairing)
+                pilot.assign_pairing(pairing)
+
+
+def print_pairings(pilots: list[Pilot]) -> None:
+    """Function used to quick visualize the pilots and the pairings assigned to them.
+
+    :param pilots: list[Pilot]: List of pilots from the input data.
+
+    """
+    print('\n', '-' * 10, 'PAIRINGS', '-' * 10)
+    for pilot in pilots:
+        print(f'{pilot}:')
+        for pairing in pilot.pairings:
+            print(f'\t{pairing}')
         print()
 
 
-def print_flights(pilots: list[Pilot], flights: list[Flight], flight_pilot_assignment_vars: DataDictionary) -> None:
-    """
+def print_flights(flights: list[Flight], flight_pilot_assignment_vars: DataDictionary) -> None:
+    """Print flights and their pilots.
 
-    :param pilots: list[Pilot]: List of pilots from the input data.
     :param flights: list[Flight]: List of flights from the input data.
     :param flight_pilot_assignment_vars: DataDictionary: Dictionary with vars for each flight and pilot.
 
     """
-    print('---FLIGHTS---')
+    print('\n', '-' * 10, 'FLIGHTS', '-' * 10)
     print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}' +
           f'/{len(flights)}\n')
+
     for flight in flights:
-        print(f'\t{flight}: {flight.pilot}')
+        print(f'\t{flight}: {(flight.pilot.name if flight.pilot else '----')}')
     print()
 
-    # for flight in flights:
-    #     print(f'{flight}: ')
-    #     for pilot in pilots:
-    #         var = flight_pilot_assignment_vars.data[flight][pilot]
-    #         if var.variable.X > 0:
-    #             print(f'\t{pilot}', end='')
-    #     print()
+
+def plot_pairings(pilots: list[Pilot]) -> None:
+    """Function used to plot the timeline charts for each pairing. The charts are stored in the output folder.
+
+    :param pilots: list[Pilot]: List of pilots from the input data.
+
+    """
+    for pilot in pilots:
+        for pairing in pilot.pairings:
+            if pairing.pilot is not None:
+                plot_flights(pairing)

@@ -54,7 +54,7 @@ def create_cic_table() -> None:
     Cic = 1 if and only if pairing i was on original schedule of crew c."""
     for pairing in ProblemData.pairings:
         for pilot in ProblemData.crew:
-            if pairing.original_pilot == pilot:
+            if pairing.pilot == pilot:
                 ProblemData.cic_table.data[pairing][pilot] = 1
             else:
                 ProblemData.cic_table.data[pairing][pilot] = 0
@@ -83,11 +83,12 @@ def print_stats() -> None:
 
     print('\n', '-' * 10, 'FLIGHTS', '-' * 10)
     for f in ProblemData.flights:
-        print('\t', f, f.pilot.name if f.pilot else '----')
+        print(f'\t{f}: {(f.pilot.name if f.pilot else '----')}')
 
     print('\n', '-' * 10, 'PAIRINGS', '-' * 10)
     for p in ProblemData.pairings:
         print(p)
+    print()
 
 
 class ProblemData:
@@ -127,9 +128,9 @@ class ProblemData:
         ProblemData.pairings = generate_pairings(ProblemData.flights)
 
         '''Assigning Pilots to Pairings/Flights'''
-        ProblemData.crew[0].assign_pairing(ProblemData.pairings[38])
-        ProblemData.crew[1].assign_pairing(ProblemData.pairings[4])  # 23
-        ProblemData.crew[2].assign_pairing(ProblemData.pairings[17])
+        ProblemData.crew[0].assign_pairing(ProblemData.pairings[38], True)
+        ProblemData.crew[1].assign_pairing(ProblemData.pairings[4], True)  # 23
+        ProblemData.crew[2].assign_pairing(ProblemData.pairings[17], True)
         # ProblemData.crew[3].assign_pairing(ProblemData.pairings[9])
         # ProblemData.crew[4].assign_pairing(ProblemData.pairings[24])
         # ProblemData.crew[5].assign_pairing(ProblemData.pairings[1])

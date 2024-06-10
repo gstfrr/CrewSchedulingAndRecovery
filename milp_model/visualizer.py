@@ -79,5 +79,5 @@ def plot_flights(pairing: Pairing):
 
     # Show the figure
     fig.write_image(width=1920, height=1080, scale=2,
-                    file=f'output/images/chart_{pairing.name}-{pairing.original_pilot.name}.png')
+                    file=f'output/images/chart_{pairing.pilot.name}-{pairing.name}-{len(pairing.flights)}-flights.png')
     # fig.show()

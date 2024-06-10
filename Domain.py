@@ -55,25 +55,34 @@ class Pilot:
 
     def __init__(self, name: str) -> None:
         self.name = name
-        self.original_pairing = None
+        self.pairings = []
 
     def __repr__(self) -> str:
         return f"Pilot({self.name})"
 
-    def assign_pairing(self, pairing) -> None:
+    def assign_pairing(self, pairing, alert: bool = False) -> None:
         """This function will the pilot to the pairing and its flights.
 
+        :param alert: bool: Print alert if the flight is already assigned to another pilot.
         :param pairing: Pairing to be assigned to the pilot.
 
         """
-        self.original_pairing = pairing
-        pairing.original_pilot = self
+        self.pairings.append(pairing)
+        pairing.pilot = self
         for f in pairing.flights:
-            if f.pilot is not None:
-                print(f'\n\n\n\nFLIGHT {f.name}/{pairing.name} ALREADY ASSIGNED TO {f.pilot.name}.'
-                      + f'CANNOT ASSIGN TO {self.name}!!!\n\n\n\n')
-                continue
+            if f.pilot is not None and alert:
+                print(f'\n\n\t\tFLIGHT {f.name}/{pairing.name} ALREADY ASSIGNED TO {f.pilot.name}.'
+                      + f' REASSIGNING TO {self.name}.\n\n')
             f.pilot = self
+
+    def clear_pairings(self) -> None:
+        """This function remove the pilot from the pairings and their flights. """
+
+        for p in self.pairings:
+            p.pilot = None
+            for f in p.flights:
+                f.pilot = None
+        self.pairings.clear()
 
 
 class Flight:
@@ -115,7 +124,7 @@ class Pairing:
         self._name = None
         self.flights = []
         self.total_duty_time = timedelta()
-        self.original_pilot = None
+        self.pilot = None
 
     @property
     def start(self) -> datetime:
@@ -173,6 +182,8 @@ class Pairing:
         return self.flights[-1].destination == airport if self.flights else True
 
     def __repr__(self) -> str:
-        pilot_name = self.original_pilot.name if self.original_pilot else '----'
-        return (f'Pairing({self.name}) - {pilot_name} - {len(self.flights)} - ' +
-                ''.join(f'{f}->' for f in self.flights) + f' - {self.total_duty_time}')
+        pilot_name = self.pilot.name if self.pilot else '----'
+        num_flights = len(self.flights)
+        flights_names = ''.join(f'{f}->' for f in self.flights)
+        duration = self.total_duty_time
+        return f'Pairing({self.name}) {pilot_name} {num_flights} flights {flights_names} {duration}'

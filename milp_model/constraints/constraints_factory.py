@@ -67,12 +67,12 @@ def create_pairing_pilot_assignment_constraint(model: Model, pilots: list[Pilot]
         model.addConstr(lhs <= LinExpr(1), name=name)
 
     # TODO: verify if pairings have conflicts or not.
-    for pilot in pilots:
-        lhs = LinExpr()
-        for pairing in pairings:
-            lhs += pairing_pilot_assignment_vars.data[pairing][pilot].variable
-        name = f'Pairing_Pilot_Assignment_Const_{pilot}'
-        model.addConstr(lhs <= LinExpr(1), name=name)
+    # for pilot in pilots:
+    #     lhs = LinExpr()
+    #     for pairing in pairings:
+    #         lhs += pairing_pilot_assignment_vars.data[pairing][pilot].variable
+    #     name = f'Pairing_Pilot_Assignment_Const_{pilot}'
+    #     model.addConstr(lhs <= LinExpr(1), name=name)
 
 
 def create_pairing_flight_constraint(model: Model, flights: list[Flight], pairings: list[Pairing],
