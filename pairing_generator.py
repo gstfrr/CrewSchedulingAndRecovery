@@ -5,6 +5,12 @@ from Domain import Pairing
 
 
 def generate_pairings(flights, max_duty_time_hours: float = 10) -> list[Pairing]:
+    """
+
+    :param flights: 
+    :param max_duty_time_hours: float:  (Default value = 10)
+
+    """
     max_duty_time = timedelta(hours=max_duty_time_hours)
 
     # Generate initial pairings

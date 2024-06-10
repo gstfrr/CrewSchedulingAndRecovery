@@ -15,6 +15,7 @@ def clean_model(m: Model) -> None:
     This function removes variables that are not used in the model. It is useful to reduce the size of the model.
 
     :param m: Model: Gurobi model to have the unused variables removed.
+    :param m: Model: 
 
     """
     m.update()
@@ -66,6 +67,7 @@ def get_var_details(var: Var) -> list[object]:
     """Returns the specified attributes of a variable object.
 
     :param var: Var: Optimized variable.
+    :param var: Var: 
 
     """
     return [var.X, var.Obj, var.VarName, var.LB, var.UB]
@@ -77,6 +79,12 @@ def get_var_columns() -> list[str]:
 
 
 def write_solution(flight_pilot_assignment_vars, filename):
+    """
+
+    :param flight_pilot_assignment_vars: 
+    :param filename: 
+
+    """
     rows = []
     for value in flight_pilot_assignment_vars.values():
         var = value.variable

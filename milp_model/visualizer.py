@@ -12,6 +12,11 @@ from Domain import Pairing
 
 
 def plot_flights(pairing: Pairing):
+    """
+
+    :param pairing: Pairing: Pairing to be plotted.
+
+    """
     # Extract flight data for plotting
     flight_data = []
     flights = pairing.flights

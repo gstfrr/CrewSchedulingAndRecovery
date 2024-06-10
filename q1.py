@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+"""Main File"""
 import os
 from timeit import default_timer as timer
 import pandas as pd
@@ -10,6 +12,12 @@ if not os.path.exists('output/'):
 
 
 def read_excel(file_path: str) -> dict:
+    """
+
+    :param file_path: str: excel file with thee input data. The input date are the pilots names,
+    a list of flights and a set of parameters and values.
+
+    """
     excel_data = pd.ExcelFile(file_path)
     data_dict = {}
 
@@ -22,6 +30,7 @@ def read_excel(file_path: str) -> dict:
 
 
 def main() -> None:
+    """The program starts here. It reads the input data from an excel file and processes it."""
     file_path = 'instances/instance1.xlsx'
     input_data = read_excel(file_path)
     problem_data = ProblemData.basic_process(input_data)

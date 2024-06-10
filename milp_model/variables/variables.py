@@ -29,12 +29,12 @@ class Variable(ABC):
 
     @property
     def name(self) -> str:
-        """ """
+        """Name of the variable. """
         return self.__repr__()
 
 
 class FlightPilotAssignmentVar(Variable):
-    """ """
+    """This is a binary variable that indicates if a pilot is assigned to one flight. """
 
     def __init__(self, model: Model, pilot: Pilot, flight: Flight, objective=0) -> None:
         super().__init__(objective=objective)
@@ -47,6 +47,7 @@ class FlightPilotAssignmentVar(Variable):
         """This is the function that will invoke the Gurobi function to add the variable to the model.
 
         :param model: Model: Gurobi model.
+        :param model: Model: 
 
         """
         return model.addVar(name=self.name, vtype=GRB.BINARY, obj=self.objective)
@@ -56,7 +57,7 @@ class FlightPilotAssignmentVar(Variable):
 
 
 class PairingPilotAssignmentVar(Variable):
-    """ """
+    """This is a binary variable that indicates if a pilot is assigned to one pairing."""
 
     def __init__(self, model: Model, pilot: Pilot, pairing: Pairing, objective: float) -> None:
         super().__init__(objective=objective)
@@ -69,6 +70,7 @@ class PairingPilotAssignmentVar(Variable):
         """This is the function that will invoke the Gurobi function to add the variable to the model.
 
         :param model: Model: Gurobi model.
+        :param model: Model: 
 
         """
 
@@ -79,7 +81,7 @@ class PairingPilotAssignmentVar(Variable):
 
 
 class PairingFlightAssignmentVar(Variable):
-    """ """
+    """This is a binary variable that indicates if a flight is assigned to one pairing."""
 
     def __init__(self, model: Model, flight: Pilot, pairing: Pairing, objective: float) -> None:
         super().__init__(objective=objective)
@@ -101,7 +103,8 @@ class PairingFlightAssignmentVar(Variable):
 
 
 class PairingFlightPilotAssignmentVar(Variable):
-    """ """
+    """This is a binary variable that indicates if a flight is assigned to one pairing and the pairing assigned to
+    a pilot."""
 
     def __init__(self, model, flight: Flight, pairing: Pairing, pilot: Pilot, objective: float) -> None:
         super().__init__(objective=objective)

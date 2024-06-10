@@ -52,8 +52,8 @@ def get_optimization(problem_data: dict[str, DataDictionary | list | list[Pairin
     and writes the output and results.
     This function is used to load basic entities and some solver settings/parameters.
 
-    :param problem_data: the input of the problem, processed in the ProblemData static class.
-
+    :param problem_data: dict[str,DataDictionary | list | list[Pairing]]: the input of the problem, processed in
+    the ProblemData static class.
     """
 
     '''Basic Entities (lists)'''
@@ -120,6 +120,13 @@ def get_optimization(problem_data: dict[str, DataDictionary | list | list[Pairin
 
 
 def plot_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assignment_vars: DataDictionary) -> None:
+    """Function used to plot the timeline charts for each pairing. The charts are stored in the output folder.
+
+    :param pilots: list[Pilot]: List of pilots from the input data.
+    :param pairings: list[Pairing]: List of pairings from the input data.
+    :param pairing_pilot_assignment_vars: DataDictionary: Dictionary with vars for each pairing and pilot.
+
+    """
     for pairing in pairings:
         for pilot in pilots:
             var = pairing_pilot_assignment_vars.data[pairing][pilot]
@@ -128,6 +135,13 @@ def plot_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_as
 
 
 def print_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assignment_vars: DataDictionary) -> None:
+    """Function used to quick visualize the pilots and the pairings assigned to them.
+
+    :param pilots: list[Pilot]: List of pilots from the input data.
+    :param pairings: list[Pairing]: List of pairings from the input data.
+    :param pairing_pilot_assignment_vars: DataDictionary: Dictionary with vars for each pairing and pilot.
+
+    """
     print('---PAIRINGS---')
     for pilot in pilots:
         print(f'{pilot}:')
@@ -140,13 +154,24 @@ def print_pairings(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_a
 
 
 def print_flights(pilots: list[Pilot], flights: list[Flight], flight_pilot_assignment_vars: DataDictionary) -> None:
+    """
+
+    :param pilots: list[Pilot]: List of pilots from the input data.
+    :param flights: list[Flight]: List of flights from the input data.
+    :param flight_pilot_assignment_vars: DataDictionary: Dictionary with vars for each flight and pilot.
+
+    """
     print('---FLIGHTS---')
     print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}' +
-          f'/{len(flights)}')
+          f'/{len(flights)}\n')
     for flight in flights:
-        print(f'{flight}: ')
-        for pilot in pilots:
-            var = flight_pilot_assignment_vars.data[flight][pilot]
-            if var.variable.X > 0:
-                print(f'\t{pilot}', end='')
-        print()
+        print(f'\t{flight}: {flight.pilot}')
+    print()
+
+    # for flight in flights:
+    #     print(f'{flight}: ')
+    #     for pilot in pilots:
+    #         var = flight_pilot_assignment_vars.data[flight][pilot]
+    #         if var.variable.X > 0:
+    #             print(f'\t{pilot}', end='')
+    #     print()

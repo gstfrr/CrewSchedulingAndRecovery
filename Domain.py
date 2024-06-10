@@ -13,7 +13,7 @@ def get_leaves(struct: Iterable) -> Set[Any]:
     """This is an useful function to flatten dictionaries into a list. It is used to iterate over the values of the
      dictionary without using nested loops in the keys.
 
-    :param struct: DictionaryData: The structure to be flattened.
+    :param struct: Iterable: DictionaryData: The structure to be flattened.
 
     """
     # Ref: https://stackoverflow.com/a/59832362/
@@ -39,6 +39,7 @@ class DataDictionary:
     returns a flatten list of the dictionary. The flatten list can be used to direct iteration
     instead of using nested loops.
 
+
     """
 
     def __init__(self) -> None:
@@ -50,6 +51,8 @@ class DataDictionary:
 
 
 class Pilot:
+    """Pilot Class. """
+
     def __init__(self, name: str) -> None:
         self.name = name
         self.original_pairing = None
@@ -58,6 +61,11 @@ class Pilot:
         return f"Pilot({self.name})"
 
     def assign_pairing(self, pairing) -> None:
+        """This function will the pilot to the pairing and its flights.
+
+        :param pairing: Pairing to be assigned to the pilot.
+
+        """
         self.original_pairing = pairing
         pairing.original_pilot = self
         for f in pairing.flights:
@@ -69,6 +77,8 @@ class Pilot:
 
 
 class Flight:
+    """FLight class. """
+
     def __init__(self, origin, destination, start, end) -> None:
         self.origin = origin
         self.destination = destination
@@ -84,14 +94,23 @@ class Flight:
 
     @property
     def name(self) -> str:
+        """ """
         return self._name
 
     @name.setter
     def name(self, name: str) -> None:
+        """
+
+        :param name: str: 
+
+        """
         self._name = name
 
 
 class Pairing:
+    """Pairing Class. A  pairing is a sequence of flights (two or more) that starts and ends at the same airport
+    (being crew home base)"""
+
     def __init__(self) -> None:
         self._name = None
         self.flights = []
@@ -100,21 +119,34 @@ class Pairing:
 
     @property
     def start(self) -> datetime:
+        """Return the start of the pairing (start of first flight). """
         return min(f.start for f in self.flights)
 
     @property
     def end(self) -> datetime:
+        """Return the end of the pairing (end of last flight). """
         return max(f.end for f in self.flights)
 
     @property
     def name(self) -> str:
+        """ """
         return f'P{self._name}'
 
     @name.setter
     def name(self, name) -> None:
+        """
+
+        :param name: 
+
+        """
         self._name = name
 
     def add_flight(self, flight: Flight) -> None:
+        """
+
+        :param flight: Flight: flight to be added in the pairing flights list.
+
+        """
         if not self.flights:
             self.flights.append(flight)
             self.total_duty_time = flight.end - flight.start
@@ -125,9 +157,19 @@ class Pairing:
             self.flights.append(flight)
 
     def is_legal(self, max_duty_time: timedelta) -> bool:
+        """
+
+        :param max_duty_time: timedelta: verify if the pairing has less than 10 hours of duty time.
+
+        """
         return self.total_duty_time <= max_duty_time
 
     def ends_at(self, airport) -> bool:
+        """
+
+        :param airport: return the last airport in the pairing.
+
+        """
         return self.flights[-1].destination == airport if self.flights else True
 
     def __repr__(self) -> str:

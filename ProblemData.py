@@ -11,6 +11,11 @@ from pairing_generator import generate_pairings
 
 
 def create_pilots(input_pilots: list[dict]) -> None:
+    """
+
+    :param input_pilots: list[dict]: 
+
+    """
     for p in input_pilots:
         pilot = Pilot(name=p['name'])
         ProblemData.crew.append(pilot)
@@ -19,6 +24,11 @@ def create_pilots(input_pilots: list[dict]) -> None:
 
 
 def create_flights(input_flights: list[dict]) -> None:
+    """
+
+    :param input_flights: list[dict]: 
+
+    """
     for f in input_flights:
         flight = Flight(origin=f['origin'], destination=f['destination'], start=f['start'], end=f['end'])
         ProblemData.flights.append(flight)
@@ -29,6 +39,8 @@ def create_flights(input_flights: list[dict]) -> None:
 
 
 def create_pif_table() -> None:
+    """Creates a dictionary containing binary values.
+    Pif = 1 if and only if pairing i includes flight f."""
     for pairing in ProblemData.pairings:
         for flight in ProblemData.flights:
             if flight in pairing.flights:
@@ -38,6 +50,8 @@ def create_pif_table() -> None:
 
 
 def create_cic_table() -> None:
+    """Creates a dictionary containing binary values.
+    Cic = 1 if and only if pairing i was on original schedule of crew c."""
     for pairing in ProblemData.pairings:
         for pilot in ProblemData.crew:
             if pairing.original_pilot == pilot:
@@ -47,8 +61,33 @@ def create_cic_table() -> None:
 
 
 def set_parameters(input_parameters: list[dict]) -> None:
+    """This function is used to set the parameters of the problem. It will assign values to the ProblemData constants.
+
+    :param input_parameters: list[dict]: list of parameters string and value.
+
+    """
     for p in input_parameters:
         setattr(ProblemData, p['name'], p['value'])
+
+
+def print_stats() -> None:
+    """Print the statistics of the problem. It will print the number of flights, pairings, pilots and idle pilots. It
+    is useful in the beginning of the optimization to check if the data was loaded correctly.
+
+    """
+    print('\n', '-' * 10, 'STATS', '-' * 10)
+    print('\tNumber of flights: ', len(ProblemData.flights))
+    print('\tNumber of pairings: ', len(ProblemData.pairings))
+    print('\tNumber of pilots: ', len(ProblemData.crew))
+    print('\tNumber of idle pilots: ', math.ceil(len(ProblemData.crew) * ProblemData.BACKUP_PILOTS_PERCENT))
+
+    print('\n', '-' * 10, 'FLIGHTS', '-' * 10)
+    for f in ProblemData.flights:
+        print('\t', f, f.pilot.name if f.pilot else '----')
+
+    print('\n', '-' * 10, 'PAIRINGS', '-' * 10)
+    for p in ProblemData.pairings:
+        print(p)
 
 
 class ProblemData:
@@ -69,8 +108,13 @@ class ProblemData:
 
     @staticmethod
     def basic_process(input_data: dict) -> dict[str, DataDictionary | list | list[Pairing]]:
-        # '''Basic Entities'''
+        """This function is used to load basic entities and some solver settings/parameters. Here is where the entities
+        are constructed and the data is stored in the ProblemData class.
 
+        :param input_data: dict: 
+
+        """
+        '''Basic Entities'''
         set_parameters(input_data['Parameters'])
 
         # C - set of crew (pilots)
@@ -96,22 +140,10 @@ class ProblemData:
 
         # Pif = 1 if and only if pairing i includes flight f
         create_pif_table()
-        # Cif = 1 if and only if pairing i was on original schedule of crew c
+        # Cic = 1 if and only if pairing i was on original schedule of crew c
         create_cic_table()
 
-        print('\n', '-' * 10, 'STATS', '-' * 10)
-        print('\tNumber of flights: ', len(ProblemData.flights))
-        print('\tNumber of pairings: ', len(ProblemData.pairings))
-        print('\tNumber of pilots: ', len(ProblemData.crew))
-        print('\tNumber of idle pilots: ', math.ceil(len(ProblemData.crew) * ProblemData.BACKUP_PILOTS_PERCENT))
-
-        print('\n', '-' * 10, 'FLIGHTS', '-' * 10)
-        for f in ProblemData.flights:
-            print('\t', f, f.pilot.name if f.pilot else '----')
-
-        print('\n', '-' * 10, 'PAIRINGS', '-' * 10)
-        for p in ProblemData.pairings:
-            print(p)
+        print_stats()
 
         # Save all our data in the dictionary below. Since ProblemData is static,
         # these values can be accessed by the class itself.

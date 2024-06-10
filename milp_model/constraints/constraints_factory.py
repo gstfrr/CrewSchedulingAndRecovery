@@ -13,7 +13,13 @@ from Domain import Flight, Pairing, Pilot
 
 def create_idle_pilots_constraint(model: Model, pilots: list[Pilot],
                                   pairing_pilot_assignment_vars: DataDictionary) -> None:
-    # '''Guarantees x% of the pilots are idle.'''
+    """Guarantees that x% of the pilots are idle.
+
+    :param model: Model: Gurobi model to be optimized.
+    :param pilots: list[Pilot]: list of pilots from the ProblemData.
+    :param pairing_pilot_assignment_vars: DataDictionary: dictionary with the Pairing-Pilot assignment variables.
+
+    """
     max_working_pilots = math.floor((1 - ProblemData.BACKUP_PILOTS_PERCENT) * len(pilots))
 
     _sum = LinExpr()
@@ -23,7 +29,16 @@ def create_idle_pilots_constraint(model: Model, pilots: list[Pilot],
     model.addConstr(_sum <= max_working_pilots, name=name)
 
 
-def create_flight_pilot_assignment_constraint(model: Model, pilots, flights, flight_pilot_assignment_vars) -> None:
+def create_flight_pilot_assignment_constraint(model: Model, pilots: list[Pilot], flights: list[Flight],
+                                              flight_pilot_assignment_vars: DataDictionary) -> None:
+    """This constraint will guarantee that each flight will have only one pilot assigned to it.
+
+    :param model: Model: Gurobi model to be optimized.
+    :param pilots: list[Pilot]: list of pilots from the ProblemData.
+    :param flights: list[Flight]: list of flights from the ProblemData.
+    :param flight_pilot_assignment_vars: DataDictionary: dictionary with the Flight-Pilot assignment variables.
+
+    """
     for flight in flights:
         lhs = LinExpr()
         for pilot in pilots:
@@ -34,7 +49,15 @@ def create_flight_pilot_assignment_constraint(model: Model, pilots, flights, fli
 
 def create_pairing_pilot_assignment_constraint(model: Model, pilots: list[Pilot], pairings: list[Pairing],
                                                pairing_pilot_assignment_vars: DataDictionary) -> None:
-    # '''Guarantees 1 pilot per pairing and 1 pairing per pilot'''
+    """Guarantees that each pairing will receive only one pilot. Note: a pilot can have more than one pairing, if\
+    they have no conflict.
+
+    :param model: Model: Gurobi model to be optimized.
+    :param pilots: list[Pilot]: list of pilots from the ProblemData.
+    :param pairings: list[Pairing]: list of pairings from the ProblemData.
+    :param pairing_pilot_assignment_vars: DataDictionary: dictionary with the Pairing-Pilot assignment variables.
+
+    """
 
     for pairing in pairings:
         lhs = LinExpr()
@@ -43,6 +66,7 @@ def create_pairing_pilot_assignment_constraint(model: Model, pilots: list[Pilot]
         name = f'Pilot_Pairing_Assignment_Const_{pairing.name}'
         model.addConstr(lhs <= LinExpr(1), name=name)
 
+    # TODO: verify if pairings have conflicts or not.
     for pilot in pilots:
         lhs = LinExpr()
         for pairing in pairings:
@@ -53,7 +77,14 @@ def create_pairing_pilot_assignment_constraint(model: Model, pilots: list[Pilot]
 
 def create_pairing_flight_constraint(model: Model, flights: list[Flight], pairings: list[Pairing],
                                      pairing_flight_assignment_vars: DataDictionary) -> None:
-    # '''Guarantees that the pairing will have all of its flights assigned.'''
+    """Guarantees that the pairing will have all of its flights assigned.
+
+    :param model: Model: Gurobi model to be optimized.
+    :param flights: list[Flight]: list of flights from the ProblemData.
+    :param pairings: list[Pairing]: list of pairings from the ProblemData.
+    :param pairing_flight_assignment_vars: DataDictionary: dictionary with the Pairing-Flight assignment variables.
+
+    """
     for pairing in pairings:
         lhs = LinExpr()
         rhs = len(pairing.flights)
@@ -69,6 +100,16 @@ def create_pairing_flight_constraint(model: Model, flights: list[Flight], pairin
 def create_max_constraint(model: Model, pilots: list[Pilot], pairings: list[Pairing],
                           pairing_pilot_assignment_vars: DataDictionary,
                           pairing_flight_pilot_vars: DataDictionary) -> None:
+    """This constraint will guarantee that all flights from a pairing assigned to a pilot, will be assigned to the
+    same pilot.
+
+    :param model: Model: Gurobi model to be optimized.
+    :param pilots: list[Pilot]: list of pilots from the ProblemData.
+    :param pairings: list[Pairing]: list of pairings from the ProblemData.
+    :param pairing_pilot_assignment_vars: DataDictionary: dictionary with the Pairing-Pilot assignment variables.
+    :param pairing_flight_pilot_vars: DataDictionary: dictionary with the Pairing-Flight-Pilot assignment variables.
+
+    """
     for pilot in pilots:
         for pairing in pairings:
             lhs = LinExpr()
@@ -83,6 +124,17 @@ def create_max_constraint(model: Model, pilots: list[Pilot], pairings: list[Pair
 def create_max2_constraint(model: Model, pilots: list[Pilot], flights: list[Flight], pairings: list[Pairing],
                            flight_pilot_assignment_vars: DataDictionary,
                            pairing_flight_pilot_vars: DataDictionary) -> None:
+    """This constraint will guarantee that all flights from a pairing assigned to a pilot, will be assigned to the
+    same pilot.
+
+    :param model: Model: Gurobi model to be optimized.
+    :param pilots: list[Pilot]: list of pilots from the ProblemData.
+    :param flights: list[Flight]: list of flights from the ProblemData.
+    :param pairings: list[Pairing]: list of pairings from the ProblemData.
+    :param flight_pilot_assignment_vars: DataDictionary: dictionary with the Flight-Pilot assignment variables.
+    :param pairing_flight_pilot_vars: DataDictionary: dictionary with the Pairing-Flight-Pilot assignment variables.
+
+    """
     for pilot in pilots:
         for flight in flights:
             lhs = LinExpr()
