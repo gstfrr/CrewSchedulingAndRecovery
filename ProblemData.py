@@ -128,7 +128,7 @@ class ProblemData:
         ProblemData.pairings = generate_pairings(ProblemData.flights)
 
         '''Assigning Pilots to Pairings/Flights'''
-        ProblemData.crew[0].assign_pairing(ProblemData.pairings[38], True)
+        ProblemData.crew[0].assign_pairing(ProblemData.pairings[14], True)
         ProblemData.crew[1].assign_pairing(ProblemData.pairings[4], True)  # 23
         ProblemData.crew[2].assign_pairing(ProblemData.pairings[17], True)
         # ProblemData.crew[3].assign_pairing(ProblemData.pairings[9])

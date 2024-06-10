@@ -35,7 +35,7 @@ def generate_pairings(flights, max_duty_time_hours: float = 10) -> list[Pairing]
                         pairings.append(combined_pairing)
 
     # Filter out illegal pairings
-    pairings = [pairing for pairing in pairings if pairing.is_legal(max_duty_time)]
+    pairings = [pairing for pairing in pairings if pairing.is_legal(max_duty_time) and len(pairing.flights) > 1]
     pairings.sort(key=lambda x: len(x.flights))
 
     # Prepare data for Excel

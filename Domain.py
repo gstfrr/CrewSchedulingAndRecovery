@@ -94,6 +94,11 @@ class Flight:
 
         self._name = None
 
+        if type(start) is str:
+            start = datetime.strptime(start, "%Y-%m-%d %H:%M")
+        if type(end) is str:
+            end = datetime.strptime(end, "%Y-%m-%d %H:%M")
+
         self.start = start
         self.end = end
         self.pilot = None
