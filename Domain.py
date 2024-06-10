@@ -6,7 +6,7 @@ The entities are defined as classes and the data is stored in dictionaries for O
 """
 from datetime import datetime, timedelta
 from collections import defaultdict
-from typing import Any, Set, Iterable
+from typing import Any, Set, Iterable, Self
 
 
 def get_leaves(struct: Iterable) -> Set[Any]:
@@ -192,3 +192,23 @@ class Pairing:
         flights_names = ''.join(f'{f}->' for f in self.flights)
         duration = self.total_duty_time
         return f'Pairing({self.name}) {pilot_name} {num_flights} flights {flights_names} {duration}'
+
+    @staticmethod
+    def merge_pairings(pairings) -> Self:
+        """This function will merge the pairings of a pilot into a single pairing. This is useful to plot the timeline.
+
+        :param pairings: list of pairings to be merged.
+
+        """
+        if len(pairings) == 1:
+            return pairings[0]
+
+        new_name = ''
+        merged_pairing = Pairing()
+        for p in pairings:
+            merged_pairing.pilot = p.pilot
+            merged_pairing.flights.extend(p.flights)
+            new_name += '+' + p.name
+        merged_pairing.name = new_name
+
+        return merged_pairing

@@ -173,6 +173,6 @@ def plot_pairings(pilots: list[Pilot]) -> None:
 
     """
     for pilot in pilots:
-        for pairing in pilot.pairings:
-            if pairing.pilot is not None:
-                plot_flights(pairing)
+        merged_pairing = Pairing.merge_pairings(pilot.pairings)
+        if merged_pairing.pilot is not None:
+            plot_flights(pairing=merged_pairing)
