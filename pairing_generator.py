@@ -15,27 +15,33 @@ def generate_pairings(flights, max_duty_time_hours: float = 10) -> list[Pairing]
 
     # Generate initial pairings
     pairings = []
+
+    def find_valid_pairings(current_pairing):
+        if current_pairing.total_duty_time > max_duty_time:
+            return
+
+        if len(current_pairing.flights) >= 2:
+            pairings.append(current_pairing)
+
+        last_airport = current_pairing.flights[-1].destination
+        last_end_time = current_pairing.flights[-1].end
+
+        for flight in flights:
+            if flight.origin == last_airport and flight.start >= last_end_time + timedelta(minutes=30):
+                new_pairing = Pairing()
+                new_pairing.flights = current_pairing.flights + [flight]
+                new_pairing.total_duty_time = current_pairing.total_duty_time + (flight.start - last_end_time) + (
+                        flight.end - flight.start)
+                find_valid_pairings(new_pairing)
+
     for flight in flights:
-        new_pairing = Pairing()
-        new_pairing.add_flight(flight)
-        pairings.append(new_pairing)
+        initial_pairing = Pairing()
+        initial_pairing.add_flight(flight)
+        find_valid_pairings(initial_pairing)
 
-    # Combine flights into pairings
-    for i in range(len(pairings)):
-        for j in range(len(pairings)):
-            if i != j and pairings[i].is_legal(max_duty_time) and pairings[j].is_legal(max_duty_time):
-                last_airport = pairings[i].flights[-1].destination
-                next_airport = pairings[j].flights[0].origin
-                if last_airport == next_airport:
-                    combined_pairing = Pairing()
-                    combined_pairing.flights = pairings[i].flights + pairings[j].flights
-                    combined_pairing.total_duty_time = pairings[i].total_duty_time + pairings[j].total_duty_time + (
-                            pairings[j].flights[0].start - pairings[i].flights[-1].end)
-                    if combined_pairing.is_legal(max_duty_time):
-                        pairings.append(combined_pairing)
-
-    # Filter out illegal pairings
+    # Filter out illegal pairings and pairings with only one flight
     pairings = [pairing for pairing in pairings if pairing.is_legal(max_duty_time) and len(pairing.flights) > 1]
+
     pairings.sort(key=lambda x: len(x.flights))
 
     # Prepare data for Excel
