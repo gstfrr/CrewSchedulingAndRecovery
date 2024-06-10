@@ -130,7 +130,7 @@ class ProblemData:
         '''Assigning Pilots to Pairings/Flights'''
         ProblemData.crew[0].assign_pairing(ProblemData.pairings[14], True)
         ProblemData.crew[1].assign_pairing(ProblemData.pairings[4], True)  # 23
-        ProblemData.crew[2].assign_pairing(ProblemData.pairings[17], True)
+        ProblemData.crew[2].assign_pairing(ProblemData.pairings[3], True)
         # ProblemData.crew[3].assign_pairing(ProblemData.pairings[9])
         # ProblemData.crew[4].assign_pairing(ProblemData.pairings[24])
         # ProblemData.crew[5].assign_pairing(ProblemData.pairings[1])
