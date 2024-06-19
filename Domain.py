@@ -34,7 +34,7 @@ def rec_dd() -> defaultdict:
     return defaultdict(rec_dd)
 
 
-class DataDictionary:
+class DataDictionary(type(rec_dd())):
     """All the dictionaries in the project are stores in this class. It provides the values() method that
     returns a flatten list of the dictionary. The flatten list can be used to direct iteration
     instead of using nested loops.
@@ -43,11 +43,12 @@ class DataDictionary:
     """
 
     def __init__(self) -> None:
-        self.data = rec_dd()  # data is still visible for O(1) access
+        super().__init__()
+        self.default_factory = rec_dd
 
-    def values(self) -> Set[Any]:
+    def final_values(self) -> Set[Any]:
         """ """
-        return get_leaves(self.data)  # Flattening available to avoid huge nested loops
+        return get_leaves(self)  # Flattening available to avoid huge nested loops
 
 
 class Pilot:

@@ -44,9 +44,9 @@ def create_pif_table() -> None:
     for pairing in ProblemData.pairings:
         for flight in ProblemData.flights:
             if flight in pairing.flights:
-                ProblemData.pif_table.data[pairing][flight] = 1
+                ProblemData.pif_table[pairing][flight] = 1
             else:
-                ProblemData.pif_table.data[pairing][flight] = 0
+                ProblemData.pif_table[pairing][flight] = 0
 
 
 def create_cic_table() -> None:
@@ -55,9 +55,9 @@ def create_cic_table() -> None:
     for pairing in ProblemData.pairings:
         for pilot in ProblemData.crew:
             if pairing.pilot == pilot:
-                ProblemData.cic_table.data[pairing][pilot] = 1
+                ProblemData.cic_table[pairing][pilot] = 1
             else:
-                ProblemData.cic_table.data[pairing][pilot] = 0
+                ProblemData.cic_table[pairing][pilot] = 0
 
 
 def set_parameters(input_parameters: list[dict]) -> None:

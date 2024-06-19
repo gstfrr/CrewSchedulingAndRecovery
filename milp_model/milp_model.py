@@ -131,7 +131,7 @@ def update_data(pilots: list[Pilot], pairings: list[Pairing], pairing_pilot_assi
     for pilot in pilots:
         pilot.clear_pairings()
         for pairing in pairings:
-            var = pairing_pilot_assignment_vars.data[pairing][pilot]
+            var = pairing_pilot_assignment_vars[pairing][pilot]
             if var.variable.X > 0:
                 pilot.assign_pairing(pairing)
 
@@ -158,7 +158,7 @@ def print_flights(flights: list[Flight], flight_pilot_assignment_vars: DataDicti
 
     """
     print('\n', '-' * 10, 'FLIGHTS', '-' * 10)
-    print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.values() if v.variable.X > 0])}' +
+    print(f'\tAllocated flights: {len([v for v in flight_pilot_assignment_vars.final_values() if v.variable.X > 0])}' +
           f'/{len(flights)}\n')
 
     for flight in flights:

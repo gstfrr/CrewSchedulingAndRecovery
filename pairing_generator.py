@@ -4,7 +4,7 @@ import pandas as pd
 from Domain import Pairing
 
 
-def generate_pairings(flights, max_duty_time_hours: float = 10) -> list[Pairing]:
+def generate_pairings(flights, max_duty_time_hours: float = 500) -> list[Pairing]:
     """
 
     :param flights: 
@@ -27,11 +27,11 @@ def generate_pairings(flights, max_duty_time_hours: float = 10) -> list[Pairing]
         last_end_time = current_pairing.flights[-1].end
 
         for flight in flights:
-            if flight.origin == last_airport and flight.start >= last_end_time + timedelta(minutes=30):
+            if flight.origin == last_airport and flight.start >= last_end_time + timedelta(minutes=30) and flight.start <= last_end_time + timedelta(hours=10):
                 new_pairing = Pairing()
                 new_pairing.flights = current_pairing.flights + [flight]
                 new_pairing.total_duty_time = current_pairing.total_duty_time + (flight.start - last_end_time) + (
-                        flight.end - flight.start)
+                    flight.end - flight.start)
                 find_valid_pairings(new_pairing)
 
     for flight in flights:
@@ -40,7 +40,8 @@ def generate_pairings(flights, max_duty_time_hours: float = 10) -> list[Pairing]
         find_valid_pairings(initial_pairing)
 
     # Filter out illegal pairings and pairings with only one flight
-    pairings = [pairing for pairing in pairings if pairing.is_legal(max_duty_time) and len(pairing.flights) > 1]
+    pairings = [pairing for pairing in pairings if pairing.is_legal(
+        max_duty_time) and len(pairing.flights) > 1]
 
     pairings.sort(key=lambda x: len(x.flights))
 
