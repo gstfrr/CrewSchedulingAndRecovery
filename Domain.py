@@ -34,7 +34,7 @@ def rec_dd() -> defaultdict:
     return defaultdict(rec_dd)
 
 
-class DataDictionary(type(rec_dd())):
+class DataDictionary(defaultdict):
     """All the dictionaries in the project are stores in this class. It provides the values() method that
     returns a flatten list of the dictionary. The flatten list can be used to direct iteration
     instead of using nested loops.
